@@ -1,0 +1,7 @@
+IMU.c:10:6:BMI088_read_Accel	2
+IMU.c:31:6:BMI088_read_Gyro	2
+IMU.c:53:6:BMI088_write_byte	6
+IMU.c:80:6:BMI088_init	1
+IMU.c:97:6:IST8310_write_byte	1
+IMU.c:103:6:IST8310_read	1
+IMU.c:111:6:IST8310_init	1
