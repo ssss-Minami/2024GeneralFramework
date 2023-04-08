@@ -1,4 +1,0 @@
-SolveTrajectory.c:20:6:GimbalControlInit	1
-SolveTrajectory.c:36:7:GimbalControlBulletModel	1
-SolveTrajectory.c:52:7:GimbalControlGetPitch	3
-SolveTrajectory.c:86:6:GimbalControlTransform	1

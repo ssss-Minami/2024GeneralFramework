@@ -1,4 +1,0 @@
-../Core/Src/SolveTrajectory.c:20:6:GimbalControlInit	24	static
-../Core/Src/SolveTrajectory.c:36:7:GimbalControlBulletModel	48	static
-../Core/Src/SolveTrajectory.c:52:7:GimbalControlGetPitch	56	static
-../Core/Src/SolveTrajectory.c:86:6:GimbalControlTransform	72	static
