@@ -484,9 +484,7 @@ void StartTask08(void *argument)
   /* USER CODE BEGIN StartTask08 */
 
 		  sd = (_sendpacket *)malloc(sizeof(_sendpacket));
-		  uint8_t temp_CRC[14];
-		  uint8_t Feed_Temp_Package[14];
-		  uint8_t SendData[24];
+//		  uint8_t temp_CRC[14];
 		  receinfo = (_receive_packetinfo)malloc(sizeof(_receive_packet));
 		  sd->header = 0X5A;
 		  sd->robot_color = 1;
@@ -505,8 +503,8 @@ void StartTask08(void *argument)
 		  sd->aim_y = 1.0;
 		  sd->aim_z = 1.0;
 		  //memmove(temp_CRC,sd,10);
-		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
-		  Pack_And_Send_Data_ROS2(sd,Feed_Temp_Package,SendData,24);
+//		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
+		  Pack_And_Send_Data_ROS2(sd,(size_t)sizeof(_sendpacket));
 		  CDC_Receive_ROS2(RecePackage, 48, receinfo);
 		  osDelay(1);
 	  }

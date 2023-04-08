@@ -19,11 +19,11 @@ void Pack_Data(_FeedBack* feedback,uint8_t* feedArray);//打包反馈的信息
 void UnPack_Data_Cha(uint8_t *ConChaArray,_controldata_chassisInfo concha);//解码收到的底盘控制数据
 void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan);//解码收到的云台控制数据
 //ROS2相关代码
-void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len);//打包以及发送函数
+//void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len);//打包以及发送函数
 void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info);//解包函数
 int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo);//接收函数
 void Data_Select(uint8_t* Origin_Data,uint8_t* Finish_Data);//剔除无用发送数据
-uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);//CRC校验码生成
+//uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);//CRC校验码生成
 
 //这是CRC校验码的数据表
 const uint16_t CRC_Data[256]={ /* CRC 字节余式表 */
@@ -147,11 +147,15 @@ void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan)
 		Len       确定发送的字节长度
   * @retval 无
   */
-void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len)
+void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint16_t Len)
 {
-	memcpy(TempArray, sendinfo, (size_t)(sizeof(_sendpacket)-2));
-	Data_Select(TempArray,sendData);
-	CDC_SendFeed(sendData, Len);
+	uint8_t pchMessage[Len];
+	uint16_t w_crc=0;
+	memcpy(pchMessage, sendinfo, Len-2);
+	w_crc=Get_CRC16_Check_Sum(pchMessage, Len-2, 0xFFFF);
+	pchMessage[Len - 2] = (uint8_t)(w_crc & 0x00ff);
+	pchMessage[Len - 1] = (uint8_t)((w_crc >> 8) & 0x00ff);
+	CDC_SendFeed(pchMessage, Len);
 }
 
 /**
@@ -206,10 +210,8 @@ void Data_Select(uint8_t* Origin_Data,uint8_t* Finish_Data)//因为打包后数�
   * @param[in] wCRC : CRC16 init value(default : 0xFFFF)
   * @return : CRC16 checksum
   */
-uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC)
+uint16_t Get_CRC16_Check_Sum(uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC)
 {
-  memcpy(TempArray, sendinfo, (size_t)(sizeof(_sendpacket)-2));
-  Data_Select(TempArray,pchMessage);
   uint8_t ch_data;
   if (pchMessage == 0) return 0xFFFF;
   while (dwLength--) {
