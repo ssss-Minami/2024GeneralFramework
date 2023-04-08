@@ -1,0 +1,9 @@
+Debug/
+Drivers/
+Middlewares/
+USB_DEVICE/
+Core/Startup/
+RM_C_test Debug.launch
+RM_C_test.ioc
+STM32F407IGHX_FLASH.ld
+STM32F407IGHX_RAM.ld
