@@ -1,0 +1,7 @@
+../Core/Src/freertos.c:133:6:MX_FREERTOS_Init	8	static
+../Core/Src/freertos.c:190:6:StartDefaultTask	16	static
+../Core/Src/freertos.c:210:6:start_SendMessage	16	static
+../Core/Src/freertos.c:266:6:startReceiveMessage	24	static
+../Core/Src/freertos.c:299:6:fun_ChangeTarget	32	static
+../Core/Src/freertos.c:434:6:StartIMU_Read	24	static
+../Core/Src/freertos.c:481:6:StartTask08	120	static
