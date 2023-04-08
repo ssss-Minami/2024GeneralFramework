@@ -503,7 +503,7 @@ void StartTask08(void *argument)
 		  sd->yaw = angle_yaw;
 		  sd->aim_x = 0.0;
 		  sd->aim_y = 0.0;
-		  sd->aim_z = 0.0;
+		  sd->aim_z = 1.0;
 		  //memmove(temp_CRC,sd,10);
 		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
 		  Pack_And_Send_Data_ROS2(sd,Feed_Temp_Package,SendData,24);

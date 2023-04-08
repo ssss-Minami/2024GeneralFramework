@@ -68,8 +68,8 @@ all: main-build
 main-build: RM_C_test.elf secondary-outputs
 
 # Tool invocations
-RM_C_test.elf RM_C_test.map: $(OBJS) $(USER_OBJS) E:\workspace\RM\RM_C_test_copy\RM_C_test_MahonyAHRSsolve\RM_C_test_MahonyAHRSsolve\RM_C_test\STM32F407IGHX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "RM_C_test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\workspace\RM\RM_C_test_copy\RM_C_test_MahonyAHRSsolve\RM_C_test_MahonyAHRSsolve\RM_C_test\STM32F407IGHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RM_C_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+RM_C_test.elf RM_C_test.map: $(OBJS) $(USER_OBJS) E:\workspace\RM\2023InfantryEMBED\STM32F407IGHX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "RM_C_test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\workspace\RM\2023InfantryEMBED\STM32F407IGHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RM_C_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

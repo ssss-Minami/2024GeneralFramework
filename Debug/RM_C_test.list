@@ -41,11 +41,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  18 .debug_line   00034ddc  00000000  00000000  0009bfe9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000e3de3  00000000  00000000  000d0dc5  2**0
+ 19 .debug_str    000e3e0b  00000000  00000000  000d0dc5  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  001b4ba8  2**0
+ 20 .comment      00000050  00000000  00000000  001b4bd0  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  0000ac70  00000000  00000000  001b4bf8  2**2
+ 21 .debug_frame  0000ac70  00000000  00000000  001b4c20  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -6121,10 +6121,10 @@ void StartTask08(void *argument)
  80037cc:	681b      	ldr	r3, [r3, #0]
  80037ce:	f04f 0200 	mov.w	r2, #0
  80037d2:	611a      	str	r2, [r3, #16]
-		  sd->aim_z = 0.0;
+		  sd->aim_z = 1.0;
  80037d4:	4b14      	ldr	r3, [pc, #80]	; (8003828 <StartTask08+0xd8>)
  80037d6:	681b      	ldr	r3, [r3, #0]
- 80037d8:	f04f 0200 	mov.w	r2, #0
+ 80037d8:	f04f 527e 	mov.w	r2, #1065353216	; 0x3f800000
  80037dc:	615a      	str	r2, [r3, #20]
 		  //memmove(temp_CRC,sd,10);
 		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
