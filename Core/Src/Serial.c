@@ -163,7 +163,7 @@ void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_
   */
 void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info)
 {
-	memmove(receive_info,receive_Array, 30);
+	memcpy(receive_info,receive_Array, 48);
 }
 
 /**

@@ -41,7 +41,7 @@ typedef struct ControlData_Pan{
 typedef struct ReceivePacket _receive_packet;
 typedef struct ReceivePacket{
 	uint8_t header;
-	bool tracking;
+	uint8_t tracking;
 	float x;
 	float y;
 	float z;
@@ -54,7 +54,7 @@ typedef struct ReceivePacket{
 	float r2;
 	float z_2;
 	uint16_t checksum;
-}_receivepacket,*_receive_packetinfo;
+}__attribute__((packed))_receivepacket,*_receive_packetinfo;
 
 typedef struct SendPacket
 {
