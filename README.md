@@ -1,0 +1,2 @@
+# 2023InfantryEMBED
+2023 RMUL Infantry EMBED on STM32
