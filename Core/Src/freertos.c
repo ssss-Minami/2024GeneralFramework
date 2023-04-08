@@ -501,7 +501,7 @@ void StartTask08(void *argument)
 		  /***向上位机发送角度***/
 		  sd->pitch = angle_pitch;
 		  sd->yaw = angle_yaw;
-		  sd->aim_x = 1.0;
+		  sd->aim_x = 2.0;
 		  sd->aim_y = 1.0;
 		  sd->aim_z = 1.0;
 		  //memmove(temp_CRC,sd,10);
