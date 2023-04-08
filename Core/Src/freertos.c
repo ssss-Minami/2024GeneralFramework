@@ -311,13 +311,13 @@ void fun_ChangeTarget(void *argument)
 			speed_y_commend = 0.8*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
 			Chassis_angleTransform();
 
-			if(RC_Ctl.keyboard.r && receinfo->suggest_fire == 1)
-			{
-				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
-				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
-				Motor[Motor_Yaw_ID].target_angle = yaw;
-				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
-			}
+//			if(RC_Ctl.keyboard.r && receinfo->suggest_fire == 1)
+//			{
+//				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
+//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
+//				Motor[Motor_Yaw_ID].target_angle = yaw;
+//				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
+//			}
 
 			Motor[Motor_Yaw_ID].target_angle -= (RC_Ctl.keyboard.x >> 4)*0.001;
 			Motor[Motor_Pitch_ID].target_angle -= (RC_Ctl.keyboard.y >> 4);
@@ -350,13 +350,13 @@ void fun_ChangeTarget(void *argument)
 			/***云台到底盘的速度转换****/
 			Chassis_angleTransform();
 			/***自瞄***/
-			if(RC_Ctl.rc.sw1 == 1 && receinfo->suggest_fire == 1)
-			{
-				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
-				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
-				Motor[Motor_Yaw_ID].target_angle = yaw;
-				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
-			}
+//			if(RC_Ctl.rc.sw1 == 1 && receinfo->suggest_fire == 1)
+//			{
+//				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
+//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
+//				Motor[Motor_Yaw_ID].target_angle = yaw;
+//				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
+//			}
 			/***云台控制输入**/
 			Motor[Motor_Yaw_ID].target_angle -= (RC_Ctl.rc.ch3>>5)*0.001;
 			Motor[Motor_Pitch_ID].target_angle += (RC_Ctl.rc.ch4>>6);
@@ -478,6 +478,7 @@ void StartIMU_Read(void *argument)
 */
 /* USER CODE END Header_StartTask08 */
 _send_packetinfo sd;
+uint8_t RecePackage[48];
 void StartTask08(void *argument)
 {
   /* USER CODE BEGIN StartTask08 */
@@ -485,7 +486,6 @@ void StartTask08(void *argument)
 		  sd = (_sendpacket *)malloc(sizeof(_sendpacket));
 		  uint8_t temp_CRC[14];
 		  uint8_t Feed_Temp_Package[14];
-		  uint8_t RecePackage[30];
 		  uint8_t SendData[24];
 		  receinfo = (_receive_packetinfo)malloc(sizeof(_receive_packet));
 		  sd->header = 0X5A;
@@ -507,7 +507,7 @@ void StartTask08(void *argument)
 		  //memmove(temp_CRC,sd,10);
 		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
 		  Pack_And_Send_Data_ROS2(sd,Feed_Temp_Package,SendData,24);
-		  CDC_Receive_ROS2(RecePackage, 30, receinfo);
+		  CDC_Receive_ROS2(RecePackage, 48, receinfo);
 		  osDelay(1);
 	  }
   /* USER CODE END StartTask08 */

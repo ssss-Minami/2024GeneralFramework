@@ -42,16 +42,17 @@ typedef struct ReceivePacket _receive_packet;
 typedef struct ReceivePacket{
 	uint8_t header;
 	uint8_t tracking : 1;
-	uint8_t target_color : 1;
-	uint8_t task_mode : 2;
-	uint8_t suggest_fire : 1;
-	uint8_t reserve : 3;
 	float x;
 	float y;
 	float z;
+	float yaw;
 	float vx;
 	float vy;
 	float vz;
+	float v_yaw;
+	float r1;
+	float r2;
+	float z_2;
 	uint16_t checksum;
 }_receivepacket,*_receive_packetinfo;
 
