@@ -502,7 +502,7 @@ void StartTask08(void *argument)
 		  sd->pitch = angle_pitch;
 		  sd->yaw = angle_yaw;
 		  sd->aim_x = 0.0;
-		  sd->aim_y = 0.0;
+		  sd->aim_y = 1.0;
 		  sd->aim_z = 1.0;
 		  //memmove(temp_CRC,sd,10);
 		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);

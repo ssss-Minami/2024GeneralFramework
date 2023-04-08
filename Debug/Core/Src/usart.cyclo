@@ -1,5 +1,0 @@
-usart.c:36:6:MX_USART1_UART_Init	2
-usart.c:65:6:MX_USART3_UART_Init	2
-usart.c:94:6:MX_USART6_UART_Init	2
-usart.c:122:6:HAL_UART_MspInit	7
-usart.c:271:6:HAL_UART_MspDeInit	4

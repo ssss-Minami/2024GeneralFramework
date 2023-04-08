@@ -1,4 +1,0 @@
-../Core/Src/referee.c:24:6:USART1_IRQHandler	16	static
-../Core/Src/referee.c:50:6:USART6_IRQHandler	16	static
-../Core/Src/referee.c:76:6:referee_solve	32	static
-../Core/Src/referee.c:159:6:referee_photo_solve	16	static

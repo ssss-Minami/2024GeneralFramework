@@ -1,3 +1,0 @@
-../Core/Src/MahonyAHRS.c:46:6:MahonyAHRSupdate	160	static
-../Core/Src/MahonyAHRS.c:156:6:MahonyAHRSupdateIMU	80	static
-../Core/Src/MahonyAHRS.c:226:7:invSqrt	32	static

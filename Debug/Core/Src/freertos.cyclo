@@ -1,7 +1,0 @@
-freertos.c:133:6:MX_FREERTOS_Init	1
-freertos.c:190:6:StartDefaultTask	1
-freertos.c:210:6:start_SendMessage	1
-freertos.c:266:6:startReceiveMessage	3
-freertos.c:299:6:fun_ChangeTarget	23
-freertos.c:434:6:StartIMU_Read	2
-freertos.c:481:6:StartTask08	1
