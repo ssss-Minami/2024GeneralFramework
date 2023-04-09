@@ -134,8 +134,8 @@ int main(void)
   HAL_Delay(1000);
   PWM_INIT();
 
-//  SPEED_INIT(1);
-//  SPEED_SET(1000);
+  SPEED_INIT(1);
+  SPEED_SET(1000);
   BMI088_init();
   IST8310_init();
   Motor[Motor_Yaw_ID].target_angle = 0;

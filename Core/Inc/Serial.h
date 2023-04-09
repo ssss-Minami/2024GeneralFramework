@@ -41,19 +41,20 @@ typedef struct ControlData_Pan{
 typedef struct ReceivePacket _receive_packet;
 typedef struct ReceivePacket{
 	uint8_t header;
-	uint8_t tracking : 1;
-	uint8_t target_color : 1;
-	uint8_t task_mode : 2;
-	uint8_t suggest_fire : 1;
-	uint8_t reserve : 3;
+	uint8_t tracking;
 	float x;
 	float y;
 	float z;
+	float yaw;
 	float vx;
 	float vy;
 	float vz;
+	float v_yaw;
+	float r1;
+	float r2;
+	float z_2;
 	uint16_t checksum;
-}_receivepacket,*_receive_packetinfo;
+}__attribute__((packed))_receivepacket,*_receive_packetinfo;
 
 typedef struct SendPacket
 {
@@ -67,7 +68,7 @@ typedef struct SendPacket
 	float aim_y;
 	float aim_z;
 	uint16_t checksum;
-}_sendpacket,*_send_packetinfo;
+}__attribute__((packed))_sendpacket,*_send_packetinfo;
 
 
 //typedef struct SendPacket
@@ -124,8 +125,8 @@ int CDC_SendFeed(uint8_t* Fed, uint16_t Len);//CDC发送反馈数据的函数
 int CDC_Receive(uint8_t* Buf, uint16_t Len,_controldata_chassisInfo concha,_controldata_panInfo conpan);//CDC接收控制数据的函数
 void Pack_Data(_FeedBack* feedback,uint8_t* feedArray);//打包反馈的信息
 //ROS2发送代码
-void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len);//ROS2下的打包以及发送函数
+void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint16_t Len);
 int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo);//ROS2下的接收函数
-uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);//校验码生成
+uint16_t Get_CRC16_Check_Sum(uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);
 extern _receive_packetinfo receinfo;
 #endif
