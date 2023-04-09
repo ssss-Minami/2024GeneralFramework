@@ -9,10 +9,11 @@
 #include "Chassis.h"
 #include "pid.h"
 #include "math.h"
+#include "referee.h"
 
 
 int16_t Chassis_ctrl[4] = {0};
-float speed_x = 0,speed_y = 0,omega = 0,speed_x_commend = 0,speed_y_commend = 0,angle_rad = 0,Chassis_Power = 0;
+float speed_x = 0,speed_y = 0,omega = 0,speed_x_commend = 0,speed_y_commend = 0,angle_rad = 0;
 
 /*
  * @brief	根据设定好的目标速度进行PID运算
@@ -65,26 +66,18 @@ void Chassis_Move(void)
  * @param	无
  * @retval	无
  */
+float Power_Limit = 120;
 void Chassis_PowerCtrl(void)
 {
-	Chassis_Power = 0;
-	float last_speed_sum = 0;
-	float speed_sum = 0;
-	for(int i=1;i<5;i++)
-	{
-		Chassis_Power += fabs(Motor[i].current*Motor[i].speed*PI*0.2/16384);
-		last_speed_sum += Motor[i].speed;
-		speed_sum += Motor[i].target_speed;
-	}
 
-	if(Chassis_Power > Power_limit)
+	if(Ref_Info.Power_Heat_Data.chassis_power > Power_Limit)
 	{
+		if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 60)
 		//限制目标速度
-		if(speed_sum != 0)
-		for(int i=1;i<5;i++)
-		{
-			Motor[i].target_speed *= (Power_limit*last_speed_sum/Chassis_Power/speed_sum);
-		}
+			for(int i=1;i<5;i++)
+			{
+				Motor[i].target_speed *= Power_Limit = 120/Ref_Info.Power_Heat_Data.chassis_power;
+			}
 	}
 }
 
