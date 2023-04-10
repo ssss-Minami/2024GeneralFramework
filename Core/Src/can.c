@@ -23,6 +23,7 @@
 /* USER CODE BEGIN 0 */
 #include "pid.h"
 #include "main.h"
+#include "WatchDog.h"
 uint8_t Can_RxData[8];
 uint8_t Can_TxData[8];
 CAN_TxHeaderTypeDef Can_cmdHeader[8];            //为方便使用，[0]空出
@@ -134,7 +135,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 /* USER CODE BEGIN 1 */
 void Can_MessageConfig(void)
 {
-	for(int i=0; i<8; i++)           //无特殊情况批量设�????
+	for(int i=0; i<8; i++)           //无特殊情况批量设�????
 	{
 		Can_cmdHeader[i].ExtId =   0x0;
 		Can_cmdHeader[i].IDE = CAN_ID_STD;
@@ -195,30 +196,35 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			Motor[1].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[1].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[1].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[1]);
 		break;
 		case 0x202:
 			Motor[2].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
 			Motor[2].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[2].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[2].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[2]);
 		break;
 		case 0x203:
 			Motor[3].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
 			Motor[3].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[3].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[3].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[3]);
 		break;
 		case 0x204:
 			Motor[4].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
 			Motor[4].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[4].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[4].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[4]);
 		break;
 		case 0x205:
 			Motor[Motor_Pitch_ID].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
 			Motor[Motor_Pitch_ID].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[Motor_Pitch_ID].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[Motor_Pitch_ID].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[5]);
 		break;
 
 		case 0x206:
@@ -226,11 +232,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			Motor[Motor_Yaw_ID].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
 			Motor[Motor_Yaw_ID].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
 			Motor[Motor_Yaw_ID].temp = Can_RxData[6];
+			feedDog(&motor_WatchDog[6]);
 
 		break;
 
 		case 0x207:
 		     Motor[Motor_AmmoFeed_ID].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
+		     feedDog(&motor_WatchDog[7]);
 		break;
 		}
 

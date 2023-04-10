@@ -18,8 +18,6 @@
 #define Width 0.41
 //麦轮半径
 #define Wheel_radius 0.075
-//功率限制量
-#define Power_limit 80.0
 //转速限制量
 #define Speed_rpm_Limit 450.0
 
@@ -32,5 +30,5 @@ extern void Chassis_angleTransform(void);
 extern void Chassis_Task(void);
 
 extern int16_t Chassis_ctrl[4];
-extern float speed_x,speed_y,omega,speed_x_commend,speed_y_commend,angle_rad,Chassis_Power;
+extern float speed_x,speed_y,omega,speed_x_commend,speed_y_commend,angle_rad;
 #endif

@@ -9,15 +9,20 @@
 #ifndef _REFEREE_H_
 #define _REFEREE_H_
 
-#define referee_buf_size 200
+#define referee_buf_size 300
+#define referee_pic_buf_size 100
+#define referee_tx_buf_size 128
 #define Offset_SOF_DataLength 1      //裁判系统数据帧偏移
 #define Offset_CRC8 4
 #define Offset_cmd_ID 5
 #define Offset_data 7
 
 extern uint8_t referee_rx_len;
+extern uint8_t referee_pic_rx_len;
 extern uint8_t referee_rx_buf[referee_buf_size];
-extern uint8_t referee_data[referee_buf_size];
+extern uint8_t referee_pic_rx_buf[referee_pic_buf_size];
+extern uint8_t referee_tx_buf[referee_tx_buf_size];
+
 void referee_solve(uint8_t *data);
 typedef enum{
 	referee_OK = 0,
@@ -303,44 +308,6 @@ typedef struct{
 	uint16_t operate_launch_cmd_time;  //最近一次操作手确定发射指令时的比赛剩余时间，单位秒
 } __attribute__((packed)) ext_dart_client_cmd_t; //LEN_DART_CLIENT_DIRECTIVE  表3-19
 
-/*
-
-	交互数据，包括一个统一的数据段头结构，
-	包含了内容 ID，发送者以及接受者的 ID 和内容数据段，
-	整个交互数据的包总共长最大为 128 个字节，
-	减去 frame_header,cmd_id,frame_tail 以及数据段头结构的 6 个字节，
-	故而发送的内容数据段最大为 113。
-	整个交互数据 0x0301 的包上行频率为 10Hz。
-
-	机器人 ID：
-	1，英雄(红)；
-	2，工程(红)；
-	3/4/5，步兵(红)；
-	6，空中(红)；
-	7，哨兵(红)；
-	11，英雄(蓝)；
-	12，工程(蓝)；
-	13/14/15，步兵(蓝)；
-	16，空中(蓝)；
-	17，哨兵(蓝)。
-	客户端 ID：
-	0x0101 为英雄操作手客户端( 红) ；
-	0x0102 ，工程操作手客户端 ((红 )；
-	0x0103/0x0104/0x0105，步兵操作手客户端(红)；
-	0x0106，空中操作手客户端((红)；
-	0x0111，英雄操作手客户端(蓝)；
-	0x0112，工程操作手客户端(蓝)；
-	0x0113/0x0114/0x0115，操作手客户端步兵(蓝)；
-	0x0116，空中操作手客户端(蓝)。
-*/
-
-/* 交互数据接收信息：0x0301  */
-typedef struct
-{
-	uint16_t data_cmd_id;
-	uint16_t send_ID;
-	uint16_t receiver_ID;
-} __attribute__((packed))ext_student_interactive_header_data_t;
 
 enum judge_robot_ID{
 	hero_red       = 1,
@@ -374,25 +341,6 @@ typedef struct{
 	uint16_t client_plane;
 } ext_interact_id_t;
 
-
-
-/*
-	学生机器人间通信 cmd_id 0x0301，内容 ID:0x0200~0x02FF
-	交互数据 机器人间通信：0x0301。
-	发送频率：上限 10Hz
-
-	字节偏移量 	大小 	说明 			备注
-	0 			2 		数据的内容 ID 	0x0200~0x02FF
-										可以在以上 ID 段选取，具体 ID 含义由参赛队自定义
-
-	2 			2 		发送者的 ID 	需要校验发送者的 ID 正确性，
-
-	4 			2 		接收者的 ID 	需要校验接收者的 ID 正确性，
-										例如不能发送到敌对机器人的ID
-
-	6 			n 		数据段 			n 需要小于 113
-
-*/
 typedef struct
 {
 	uint8_t data[113]; //数据段,n需要小于113
@@ -427,7 +375,6 @@ typedef struct{
 	uint16_t                self_client;        //本机客户端
 
 }Referee_InfoTypedef;
-extern Referee_InfoTypedef Ref_Info;
 
 typedef struct
 {
@@ -439,7 +386,76 @@ int8_t right_button_down;
 uint16_t keyboard_value;
 uint16_t reserved;
 }__attribute__((packed))ext_robot_command_t;
-extern ext_robot_command_t Robot_Cmd;
 
+typedef struct
+{
+	uint8_t SOF;
+	uint16_t data_length;
+	uint8_t seq;
+	uint8_t CRC8;
+	uint16_t Cmd_id;
+	uint16_t Data_id;
+	uint16_t Tx_id;
+	uint16_t Rx_id;
+}__attribute__((packed))graphic_TxHeader_Typedef;
+
+typedef struct
+{
+	uint8_t graphic_name[3];
+	uint32_t operate_tpye:3;
+	uint32_t graphic_tpye:3;
+	uint32_t layer:4;
+	uint32_t color:4;
+	uint32_t start_angle:9;
+	uint32_t end_angle:9;
+	uint32_t width:10;
+	uint32_t start_x:11;
+	uint32_t start_y:11;
+	uint32_t radius:10;
+	uint32_t end_x:11;
+	uint32_t end_y:11;
+}__attribute__((packed))graphic_data_struct_t;
+
+typedef enum
+{
+	graph_operate_empty = 0,
+	graph_operate_add = 1,
+	graph_operate_change = 2,
+	graph_operate_delete = 3,
+
+	graph_type_line = 0,
+	graph_type_rectangle = 1,
+	graph_type_circle = 2,
+	graph_type_oval = 3,
+	graph_type_arc = 4,
+	graph_type_float = 5,
+	graph_type_int = 7,
+	graph_type_char = 8,
+
+	graph_color_R_or_B = 0,
+	graph_color_yellow = 1,
+	graph_color_green = 2,
+	graph_color_orange = 3,
+	graph_color_purple = 4,
+	graph_color_pink = 5,
+	graph_color_cyan = 6,
+	graph_color_black = 7,
+	graph_color_white = 8,
+
+	graph_LineWidth_default = 3,
+	graph_FrontSize_default = 30,
+
+
+	LEN_graph_TxHeader = 13,
+	LEN_graph_ID = 6,
+	LEN_data_delete = 2,
+	LEN_data_draw1 = 15,
+
+}graph_config;
+extern ext_robot_command_t Robot_Cmd;
 extern Referee_StatusTypeDef Referee_Status;
+extern Referee_InfoTypedef Ref_Info;
+extern graphic_data_struct_t graphic_data;
+extern graphic_TxHeader_Typedef graphic_TxHeader;
+extern void Graphic_draw(uint8_t isTracking_now, uint8_t isTracking_past);
 #endif

@@ -53,9 +53,10 @@
 /* USER CODE BEGIN PD */
 #define REMOTE_OR_KEYBORAD 0//选择遥控器或键鼠控制
 extern uint8_t Message[];
-int spcount = 1;
-float angle_yaw,angle_pitch,pitch,yaw;
+float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
+uint8_t Motor_Status;
+_send_packetinfo sd;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -92,7 +93,7 @@ const osThreadAttr_t ReceiveMessage_attributes = {
 osThreadId_t ChangeTargetHandle;
 const osThreadAttr_t ChangeTarget_attributes = {
   .name = "ChangeTarget",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for IMU_Read */
@@ -106,7 +107,7 @@ const osThreadAttr_t IMU_Read_attributes = {
 osThreadId_t start_USB_CDCHandle;
 const osThreadAttr_t start_USB_CDC_attributes = {
   .name = "start_USB_CDC",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -236,7 +237,7 @@ void start_SendMessage(void *argument)
 	  Can_TxData[4] = (temp_ammofeed>>8);
 	  Can_TxData[5] = temp_ammofeed;
 
-//	  HAL_CAN_AddTxMessage(&hcan1, &Can_cmdHeader[Motor_Pitch_ID], Can_TxData, (uint32_t*)CAN_TX_MAILBOX0);
+	  HAL_CAN_AddTxMessage(&hcan1, &Can_cmdHeader[Motor_Pitch_ID], Can_TxData, (uint32_t*)CAN_TX_MAILBOX0);
 	  //osDelay(1);
 	  /***底盘全向移动***/
 	  Chassis_Move();
@@ -250,7 +251,7 @@ void start_SendMessage(void *argument)
  	  Can_TxData[6] = Chassis_ctrl[3]>>8;
  	  Can_TxData[7] = Chassis_ctrl[3];
 
-//	  HAL_CAN_AddTxMessage(&hcan1,&Can_cmdHeader[Motor_LeftFront_ID],Can_TxData,(uint32_t*)CAN_TX_MAILBOX0);
+	  HAL_CAN_AddTxMessage(&hcan1,&Can_cmdHeader[Motor_LeftFront_ID],Can_TxData,(uint32_t*)CAN_TX_MAILBOX0);
 	  osDelay(1);
   }
   /* USER CODE END start_SendMessage */
@@ -271,7 +272,7 @@ void startReceiveMessage(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  /***检测已发弹量***/
+	  /***�??测已发弹�??***/
 	  if(HAL_GPIO_ReadPin(Ammo_Counter_GPIO_Port, Ammo_Counter_Pin) != pinstate)
 	  {
 		  pinstate = !pinstate;
@@ -282,7 +283,6 @@ void startReceiveMessage(void *argument)
 		  ammo_count++;
 		  ammo_temp = 0;
 	  }
-//	  HAL_UART_Transmit(&huart1, (uint8_t*)&Motor[spcount].speed, 2, 100);
 
     osDelay(20);
   }
@@ -302,22 +302,34 @@ void fun_ChangeTarget(void *argument)
   /* Infinite loop */
 	for(;;)
   {
-		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状态更新
-		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更新
+		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状�?�更�?
+		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更�?
+		for(uint8_t i=1;i<8;i++)
+		{
+			Dog_Status_update(&motor_WatchDog[i]);
+			if(!motor_WatchDog[i].status)
+				Motor_Status = 0;
+		}
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
-			speed_x_commend = 0.8*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 0.8*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			speed_x_commend = 1.5*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 1.5*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			if(speed_x_commend&&speed_y_commend)
+			{
+				speed_x_commend /= 1.5;
+				speed_y_commend /= 1.5;
+			}
 			Chassis_angleTransform();
 
-//			if(RC_Ctl.keyboard.r && receinfo->suggest_fire == 1)
-//			{
-//				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
-//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
-//				Motor[Motor_Yaw_ID].target_angle = yaw;
-//				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
-//			}
+			if(receinfo->tracking && RC_Ctl.keyboard.r)
+			{
+				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
+						,&aim[0],&aim[1],&aim[2]);
+				Motor[Motor_Yaw_ID].target_angle = yaw;
+				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
+			}
 
 			Motor[Motor_Yaw_ID].target_angle -= (RC_Ctl.keyboard.x >> 4)*0.001;
 			Motor[Motor_Pitch_ID].target_angle -= (RC_Ctl.keyboard.y >> 4);
@@ -343,20 +355,21 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(remote_WatchDog.status)
 		{
-			/****************遥控器控制*******************/
-			/***相对云台的速度输入***/
-			speed_x_commend = RC_Ctl.rc.ch2*0.0012;
-			speed_y_commend = RC_Ctl.rc.ch1*0.0012;
+			/****************遥控器控�??*******************/
+			/***相对云台的�?�度输入***/
+			speed_x_commend = RC_Ctl.rc.ch2*0.002;
+			speed_y_commend = RC_Ctl.rc.ch1*0.002;
 			/***云台到底盘的速度转换****/
 			Chassis_angleTransform();
 			/***自瞄***/
-//			if(RC_Ctl.rc.sw1 == 1 && receinfo->suggest_fire == 1)
-//			{
-//				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
-//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
-//				Motor[Motor_Yaw_ID].target_angle = yaw;
-//				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
-//			}
+			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
+			{
+				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
+						,&aim[0],&aim[1],&aim[2]);
+				Motor[Motor_Yaw_ID].target_angle = yaw;
+				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
+			}
 			/***云台控制输入**/
 			Motor[Motor_Yaw_ID].target_angle -= (RC_Ctl.rc.ch3>>5)*0.001;
 			Motor[Motor_Pitch_ID].target_angle += (RC_Ctl.rc.ch4>>6);
@@ -368,8 +381,8 @@ void fun_ChangeTarget(void *argument)
 				Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900)
 				Motor[Motor_Pitch_ID].target_angle = 2900;
-			/*****拨弹轮控制输入******/
-			if(RC_Ctl.rc.sw1 == 2)
+			/*****拨弹轮控制输�??******/
+			if(RC_Ctl.rc.wheel)
 			{
 				Motor[Motor_AmmoFeed_ID].target_speed = 1200;
 			}
@@ -377,12 +390,12 @@ void fun_ChangeTarget(void *argument)
 			{
 				Motor[Motor_AmmoFeed_ID].target_speed = 0;
 			}
-			/****底盘状态选择****/
+			/****底盘状�?��?�择****/
 			if(RC_Ctl.rc.sw2 == 2)
 			{
 				PID_Motor_Angle[6].Ki = 0.1;
 				PID_Motor_Angle[6].Err_sum_Max = 300;
-				Chassis_Spin();//小陀螺
+				Chassis_Spin();//小陀�??
 	//			Motor[Motor_Yaw_ID].target_speed = 45;
 			}
 			else if(RC_Ctl.rc.sw2 == 1)
@@ -395,12 +408,12 @@ void fun_ChangeTarget(void *argument)
 			else {
 				PID_Motor_Angle[6].Ki = 0;
 				PID_Motor_Angle[6].Err_sum_Max = 50;
-				omega = 0;//底盘不跟随
+				omega = 0;//底盘不跟�??
 	//			Motor[Motor_Yaw_ID].target_speed = 0;
 			}
 		}
 		/**掉线保护***/
-		if(!remote_WatchDog.status && !referee_WatchDog.status)//遥控器和图传均掉线时pid超参数与输出全部置0
+		if((!remote_WatchDog.status && !referee_WatchDog.status))//遥控器和图传均掉线时pid超参数与输出全部�?0
 		{
 			for(int i=0;i<8;i++)
 			{
@@ -409,6 +422,7 @@ void fun_ChangeTarget(void *argument)
 			}
 			temp_yaw = 0;
 			temp_pitch = 0;
+			temp_ammofeed = 0;
 			Chassis_ctrl[0] = 0;
 			Chassis_ctrl[1] = 0;
 			Chassis_ctrl[2] = 0;
@@ -416,7 +430,7 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
 			PID_Init();
-
+		Motor_Status = 1;
 		osDelay(5);
   }
 
@@ -451,12 +465,12 @@ void StartIMU_Read(void *argument)
 //		 imu_mag[i] = imu_data.mag[i]*0.3;
 
 	 }
-	 /***减去零偏值（零偏需标定获取）***/
+	 /***减去零偏值（零偏�??标定获取�??***/
 	 imu_gyro[1] -= (11.5390333f / 65.536)*(PI/180);
 	 imu_gyro[2] -= (10.4231017f / 65.536)*(PI/180);
 	 imu_accel[1] -= (141.763613f * 0.0008974);
 
-	 /***均值滤波***/
+	 /***均�?�滤�??***/
 	 MahonyAHRSupdateIMU(imu_data.angle_q, imu_gyro[0], imu_gyro[1], imu_gyro[2], imu_accel[0], imu_accel[1], imu_accel[2]);
 	 imu_data.angle[0] = atan2f(2.0f*(imu_data.angle_q[0]*imu_data.angle_q[3]+imu_data.angle_q[1]*imu_data.angle_q[2]), 2.0f*(imu_data.angle_q[0]*imu_data.angle_q[0]+imu_data.angle_q[1]*imu_data.angle_q[1])-1.0f);
 	 imu_data.angle[1] = asinf(-2.0f*(imu_data.angle_q[1]*imu_data.angle_q[3]-imu_data.angle_q[0]*imu_data.angle_q[2]));
@@ -476,6 +490,7 @@ void StartIMU_Read(void *argument)
 * @param argument: Not used
 * @retval None
 */
+uint8_t RecePackage[30];
 /* USER CODE END Header_StartTask08 */
 void StartTask08(void *argument)
 {
@@ -495,13 +510,22 @@ void StartTask08(void *argument)
 	  /* Infinite loop */
 	  for(;;)
 	  {
-		  /***向上位机发送角度***/
+		  /***向上位机发�?�角�??***/
 		  sd->pitch = angle_pitch;
 		  sd->yaw = angle_yaw;
-		  sd->aim_x = 2.0;
-		  sd->aim_y = 1.0;
-		  sd->aim_z = 1.0;
-//		  Append CRC and Send data
+		  if(!receinfo->tracking)
+		  {
+			  sd->aim_x = 0;
+			  sd->aim_y = 0;
+			  sd->aim_z = 0;
+		  }
+		  else{
+			  sd->aim_x = aim[0];
+			  sd->aim_y = aim[1];
+			  sd->aim_z = aim[2];
+		  }
+		  //memmove(temp_CRC,sd,10);
+//		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
 		  Pack_And_Send_Data_ROS2(sd,(size_t)sizeof(_sendpacket));
 		  CDC_Receive_ROS2(RecePackage, (size_t)sizeof(_receive_packet), receinfo);
 		  osDelay(1);

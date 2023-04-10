@@ -119,6 +119,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_I2C3_Init();
   MX_USART6_UART_Init();
+  MX_TIM3_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -134,8 +135,8 @@ int main(void)
   HAL_Delay(1000);
   PWM_INIT();
 
-//  SPEED_INIT(1);
-//  SPEED_SET(1000);
+  SPEED_INIT(1);
+  SPEED_SET(1000);
   BMI088_init();
   IST8310_init();
   Motor[Motor_Yaw_ID].target_angle = 0;
@@ -245,6 +246,9 @@ void PWM_INIT(){
 	  HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
 	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+	  HAL_TIM_Base_Start(&htim3);
+	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,200);
 }
 void SPEED_INIT(int speed){
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1000);

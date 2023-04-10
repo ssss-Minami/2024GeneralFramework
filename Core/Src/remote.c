@@ -18,9 +18,9 @@ RC_Ctl_t RC_Ctl;
 uint8_t RC_buff[18],count_remote_skip;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	feedDog(&remote_WatchDog);//进回调则喂狗
 	if(huart->Instance == USART3)
 	{
+		feedDog(&remote_WatchDog);//进回调则喂狗
 		RC_Ctl.rc.ch1 = (RC_buff[0] | RC_buff[1] << 8) & 0x07FF;
 		RC_Ctl.rc.ch1 -= 1024;
 		RC_Ctl.rc.ch2 = (RC_buff[1] >> 3 | RC_buff[2] << 5) & 0x07FF;
