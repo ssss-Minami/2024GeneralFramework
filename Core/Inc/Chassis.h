@@ -18,8 +18,6 @@
 #define Width 0.41
 //麦轮半径
 #define Wheel_radius 0.075
-//功率限制量
-
 //转速限制量
 #define Speed_rpm_Limit 450.0
 

@@ -272,7 +272,7 @@ void startReceiveMessage(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  /***�?测已发弹�?***/
+	  /***�??测已发弹�??***/
 	  if(HAL_GPIO_ReadPin(Ammo_Counter_GPIO_Port, Ammo_Counter_Pin) != pinstate)
 	  {
 		  pinstate = !pinstate;
@@ -355,7 +355,7 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(remote_WatchDog.status)
 		{
-			/****************遥控器控�?*******************/
+			/****************遥控器控�??*******************/
 			/***相对云台的�?�度输入***/
 			speed_x_commend = RC_Ctl.rc.ch2*0.002;
 			speed_y_commend = RC_Ctl.rc.ch1*0.002;
@@ -381,7 +381,7 @@ void fun_ChangeTarget(void *argument)
 				Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900)
 				Motor[Motor_Pitch_ID].target_angle = 2900;
-			/*****拨弹轮控制输�?******/
+			/*****拨弹轮控制输�??******/
 			if(RC_Ctl.rc.wheel)
 			{
 				Motor[Motor_AmmoFeed_ID].target_speed = 1200;
@@ -395,7 +395,7 @@ void fun_ChangeTarget(void *argument)
 			{
 				PID_Motor_Angle[6].Ki = 0.1;
 				PID_Motor_Angle[6].Err_sum_Max = 300;
-				Chassis_Spin();//小陀�?
+				Chassis_Spin();//小陀�??
 	//			Motor[Motor_Yaw_ID].target_speed = 45;
 			}
 			else if(RC_Ctl.rc.sw2 == 1)
@@ -408,7 +408,7 @@ void fun_ChangeTarget(void *argument)
 			else {
 				PID_Motor_Angle[6].Ki = 0;
 				PID_Motor_Angle[6].Err_sum_Max = 50;
-				omega = 0;//底盘不跟�?
+				omega = 0;//底盘不跟�??
 	//			Motor[Motor_Yaw_ID].target_speed = 0;
 			}
 		}
@@ -465,12 +465,12 @@ void StartIMU_Read(void *argument)
 //		 imu_mag[i] = imu_data.mag[i]*0.3;
 
 	 }
-	 /***减去零偏值（零偏�?标定获取�?***/
+	 /***减去零偏值（零偏�??标定获取�??***/
 	 imu_gyro[1] -= (11.5390333f / 65.536)*(PI/180);
 	 imu_gyro[2] -= (10.4231017f / 65.536)*(PI/180);
 	 imu_accel[1] -= (141.763613f * 0.0008974);
 
-	 /***均�?�滤�?***/
+	 /***均�?�滤�??***/
 	 MahonyAHRSupdateIMU(imu_data.angle_q, imu_gyro[0], imu_gyro[1], imu_gyro[2], imu_accel[0], imu_accel[1], imu_accel[2]);
 	 imu_data.angle[0] = atan2f(2.0f*(imu_data.angle_q[0]*imu_data.angle_q[3]+imu_data.angle_q[1]*imu_data.angle_q[2]), 2.0f*(imu_data.angle_q[0]*imu_data.angle_q[0]+imu_data.angle_q[1]*imu_data.angle_q[1])-1.0f);
 	 imu_data.angle[1] = asinf(-2.0f*(imu_data.angle_q[1]*imu_data.angle_q[3]-imu_data.angle_q[0]*imu_data.angle_q[2]));
@@ -490,8 +490,9 @@ void StartIMU_Read(void *argument)
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask08 */
 uint8_t RecePackage[30];
+/* USER CODE END Header_StartTask08 */
+
 void StartTask08(void *argument)
 {
   /* USER CODE BEGIN StartTask08 */
@@ -509,7 +510,7 @@ void StartTask08(void *argument)
 	  /* Infinite loop */
 	  for(;;)
 	  {
-		  /***向上位机发�?�角�?***/
+		  /***向上位机发�?�角�??***/
 		  sd->pitch = angle_pitch;
 		  sd->yaw = angle_yaw;
 		  if(!receinfo->tracking)
