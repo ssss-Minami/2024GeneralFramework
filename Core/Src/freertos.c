@@ -313,13 +313,13 @@ void fun_ChangeTarget(void *argument)
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
-			speed_x_commend = 1.5*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 1.5*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
-			if(speed_x_commend&&speed_y_commend)
-			{
-				speed_x_commend /= 1.5;
-				speed_y_commend /= 1.5;
-			}
+			speed_x_commend = 0.9*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 0.9*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+//			if(speed_x_commend&&speed_y_commend)
+//			{
+//				speed_x_commend /= 1.5;
+//				speed_y_commend /= 1.5;
+//			}
 			Chassis_angleTransform();
 
 			if(receinfo->tracking && RC_Ctl.keyboard.r)
@@ -343,7 +343,7 @@ void fun_ChangeTarget(void *argument)
 			Motor[Motor_AmmoFeed_ID].target_speed = 1200*(RC_Ctl.keyboard.l);
 			if(RC_Ctl.keyboard.SHIFT)
 			{
-				PID_Motor_Angle[6].Ki = 0.1;
+				PID_Motor_Angle[6].Ki = 0.25;
 				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();
 			}
@@ -506,7 +506,7 @@ void StartTask08(void *argument)
 		sd->reserve = 5;
 
 		sd->checksum=0X00;
-
+		memset(receinfo,0,sizeof(_receivepacket));
 	  /* Infinite loop */
 	  for(;;)
 	  {

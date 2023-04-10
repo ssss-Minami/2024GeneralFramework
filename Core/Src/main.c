@@ -27,6 +27,7 @@
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
+#include "Serial.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -146,6 +147,22 @@ int main(void)
   for(int i=0;i<3;i++){
 	  IMU_fliter_Init(imu_fliter + i);
   }
+
+//  receinfo->checksum=0;
+//  receinfo->header=0;
+//  receinfo->r1=0;
+//  receinfo->r2=0;
+//  receinfo->tracking=0;
+//  receinfo->v_yaw=0;
+//  receinfo->vx=0;
+//  receinfo->vy=0;
+//  receinfo->vz=0;
+//  receinfo->x=0.0;
+//  receinfo->y=0.0;
+//  receinfo->yaw=0;
+//  receinfo->z=0.0;
+//  receinfo->z_2=0;
+
 
     HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化遥控器DMA
   __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能

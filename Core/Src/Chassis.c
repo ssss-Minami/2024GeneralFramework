@@ -23,7 +23,7 @@ float speed_x = 0,speed_y = 0,omega = 0,speed_x_commend = 0,speed_y_commend = 0,
 void Chassis_Ctrl(void)
 {
 				//功率限制
-		Chassis_PowerCtrl();
+//		Chassis_PowerCtrl();
 		for(int i=1;i<5;i++)
 			{
 				PID_Incr(&PID_Motor_Speed[i],Motor[i].speed,Motor[i].target_speed);
