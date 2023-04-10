@@ -30,7 +30,7 @@ void USART1_IRQHandler(void)
 	__HAL_UART_CLEAR_IDLEFLAG(&huart1);
 	HAL_UART_DMAStop(&huart1);
 	referee_rx_len = referee_buf_size - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
-
+	referee_solve(referee_rx_buf);
 //	if(Referee_Status == referee_OK)
 
 		memcpy(referee_data, referee_rx_buf, referee_rx_len);

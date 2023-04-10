@@ -53,9 +53,9 @@
 /* USER CODE BEGIN PD */
 #define REMOTE_OR_KEYBORAD 0//选择遥控器或键鼠控制
 extern uint8_t Message[];
-int spcount = 1;
 float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
+uint8_t Motor_Status;
 _send_packetinfo sd;
 /* USER CODE END PD */
 
@@ -251,7 +251,7 @@ void start_SendMessage(void *argument)
  	  Can_TxData[6] = Chassis_ctrl[3]>>8;
  	  Can_TxData[7] = Chassis_ctrl[3];
 
-//	  HAL_CAN_AddTxMessage(&hcan1,&Can_cmdHeader[Motor_LeftFront_ID],Can_TxData,(uint32_t*)CAN_TX_MAILBOX0);
+	  HAL_CAN_AddTxMessage(&hcan1,&Can_cmdHeader[Motor_LeftFront_ID],Can_TxData,(uint32_t*)CAN_TX_MAILBOX0);
 	  osDelay(1);
   }
   /* USER CODE END start_SendMessage */
@@ -283,7 +283,6 @@ void startReceiveMessage(void *argument)
 		  ammo_count++;
 		  ammo_temp = 0;
 	  }
-//	  HAL_UART_Transmit(&huart1, (uint8_t*)&Motor[spcount].speed, 2, 100);
 
     osDelay(20);
   }
@@ -305,16 +304,27 @@ void fun_ChangeTarget(void *argument)
   {
 		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状�?�更�?
 		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更�?
+		for(uint8_t i=1;i<8;i++)
+		{
+			Dog_Status_update(&motor_WatchDog[i]);
+			if(!motor_WatchDog[i].status)
+				Motor_Status = 0;
+		}
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
-			speed_x_commend = 0.8*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 0.8*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			speed_x_commend = 1.5*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 1.5*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			if(speed_x_commend&&speed_y_commend)
+			{
+				speed_x_commend /= 1.5;
+				speed_y_commend /= 1.5;
+			}
 			Chassis_angleTransform();
 
 			if(receinfo->tracking && RC_Ctl.keyboard.r)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.76);
+				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -347,21 +357,14 @@ void fun_ChangeTarget(void *argument)
 		{
 			/****************遥控器控�?*******************/
 			/***相对云台的�?�度输入***/
-			speed_x_commend = RC_Ctl.rc.ch2*0.0012;
-			speed_y_commend = RC_Ctl.rc.ch1*0.0012;
+			speed_x_commend = RC_Ctl.rc.ch2*0.002;
+			speed_y_commend = RC_Ctl.rc.ch1*0.002;
 			/***云台到底盘的速度转换****/
 			Chassis_angleTransform();
 			/***自瞄***/
-//			if(RC_Ctl.rc.sw1 == 1 && receinfo->suggest_fire == 1)
-//			{
-//				GimbalControlInit( angle_pitch, angle_yaw, 18, 0.02);
-//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw);
-//				Motor[Motor_Yaw_ID].target_angle = yaw;
-//				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
-//			}
 			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.76);
+				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -410,7 +413,7 @@ void fun_ChangeTarget(void *argument)
 			}
 		}
 		/**掉线保护***/
-		if(!remote_WatchDog.status && !referee_WatchDog.status)//遥控器和图传均掉线时pid超参数与输出全部�?0
+		if((!remote_WatchDog.status && !referee_WatchDog.status))//遥控器和图传均掉线时pid超参数与输出全部�?0
 		{
 			for(int i=0;i<8;i++)
 			{
@@ -419,6 +422,7 @@ void fun_ChangeTarget(void *argument)
 			}
 			temp_yaw = 0;
 			temp_pitch = 0;
+			temp_ammofeed = 0;
 			Chassis_ctrl[0] = 0;
 			Chassis_ctrl[1] = 0;
 			Chassis_ctrl[2] = 0;
@@ -426,7 +430,7 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
 			PID_Init();
-
+		Motor_Status = 1;
 		osDelay(5);
   }
 

@@ -13,6 +13,7 @@
 
 WatchDog_t remote_WatchDog;
 WatchDog_t referee_WatchDog;
+WatchDog_t motor_WatchDog[8];
 /*
  * @brief	喂狗程序代码，放在需要进行检测的程序段中
  * @param	对应的看门狗指针（由用户自定义）
@@ -30,7 +31,7 @@ void feedDog(WatchDog_t* hdog)
  */
 uint8_t Dog_Status_update(WatchDog_t* hdog)
 {
-	if(uwTick - hdog->last_time > 1000)//此处修改最小判断离线时间，单位ms
+	if(uwTick - hdog->last_time > 750)//此处修改最小判断离线时间，单位ms
 		hdog->status = 0;
 	return hdog->status;
 }
