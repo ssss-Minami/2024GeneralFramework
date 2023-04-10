@@ -70,25 +70,6 @@ typedef struct SendPacket
 	uint16_t checksum;
 }__attribute__((packed))_sendpacket,*_send_packetinfo;
 
-
-//typedef struct SendPacket
-//{
-//	uint8_t header;
-//	uint8_t robot_color : 1;
-//	uint8_t task_mode : 2;
-//	uint8_t reserve : 5;
-//	float pitch;
-//	float yaw;
-//	float aim_x;
-//	float aim_y;
-//	float aim_z;
-//	uint16_t checksum;
-//
-//}_sendpacket,*_send_packetinfo;
-
-//
-
-
 //下方是枚举所有结构体的可能选项，便于发送数据以及解析数据
 /*
  * @Brief: 发射方式

@@ -20,7 +20,7 @@ void UnPack_Data_Cha(uint8_t *ConChaArray,_controldata_chassisInfo concha);//解
 void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan);//解码收到的云台控制数据
 //ROS2相关代码
 //void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len);//打包以及发送函数
-void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info);//解包函数
+void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info,uint16_t Len);//解包函数
 int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo);//接收函数
 void Data_Select(uint8_t* Origin_Data,uint8_t* Finish_Data);//剔除无用发送数据
 //uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);//CRC校验码生成
@@ -138,6 +138,39 @@ void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan)
 
 
 //以下是为了与ROS2而特制的接收发送代码
+
+/**
+  * @brief  将接收到的控制数组拆分为对应的结构体
+  * @param
+		receive_Array 接收到的数据数组
+		receive_info 接收数据的结构体
+  * @retval 无
+  */
+void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info,uint16_t Len)
+{
+	uint16_t w_expected;
+	w_expected=Get_CRC16_Check_Sum(receive_Array,Len-2,0xFFFF);
+	if((w_expected & 0xff) == receive_Array[Len - 2] && ((w_expected >> 8) & 0xff) == receive_Array[Len - 1]){
+		memcpy(receive_info,receive_Array, 48);
+	}
+}
+
+/**
+  * @brief  ROS2下的数据接收函数
+  * @param
+        Buf 缓存数组
+		Len 数组长度
+		packinfo 具体接收数据的结构体
+  * @retval 无
+  */
+int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo)
+{
+	CDC_Receive_FS(Buf, &Len);
+	if(Buf[0]==(uint8_t)(0xA5)){UnPack_Data_ROS2(Buf,packinfo,Len);}
+	else return -1;
+	return 0;
+}
+
 /**
   * @brief  将对应的结构体打包为缓冲数组
   * @param
@@ -159,54 +192,9 @@ void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint16_t Len)
 }
 
 /**
-  * @brief  将接收到的控制数组拆分为对应的结构体
-  * @param
-		receive_Array 接收到的数据数组
-		receive_info 接收数据的结构体
-  * @retval 无
-  */
-void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info)
-{
-	memcpy(receive_info,receive_Array, 48);
-}
-
-/**
-  * @brief  ROS2下的数据接收函数
-  * @param
-        Buf 缓存数组
-		Len 数组长度
-		packinfo 具体接收数据的结构体
-  * @retval 无
-  */
-int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo)
-{
-	CDC_Receive_FS(Buf, &Len);
-	if(Buf[0]==(uint8_t)(0xA5)){UnPack_Data_ROS2(Buf,packinfo);}
-	else return -1;
-	return 0;
-}
-
-/**
-  * @brief  数据挑选函数
-  * @param
-		Origin_Data 打包后的初始数组
-		Finish_Data 整理过的发送数组
-  * @retval 无
-  */
-void Data_Select(uint8_t* Origin_Data,uint8_t* Finish_Data)//因为打包后数组中间会多2个字节，所以需要进行调整才能发送
-{
-	for(int i=0;i<2;i++)
-	Finish_Data[i]=Origin_Data[i];
-	for(int i=2;i<12;i++)
-	Finish_Data[i]=Origin_Data[i+2];
-}
-
-/**
   * @brief CRC16 Caculation function
-  * @param[in] sendinfo : 结构体
-  * @param[in] TempArray : 存储被转换后的数据，需要进一步剔除无用字节
-  * @param[in] pchMessage : 最终需要被计算的数据
-  * @param[in] dwLength : Stream length = Data + checksum
+  * @param[in] pchMessage : Packed Array
+  * @param[in] dwLength : Stream length = Data (without Checksum)
   * @param[in] wCRC : CRC16 init value(default : 0xFFFF)
   * @return : CRC16 checksum
   */

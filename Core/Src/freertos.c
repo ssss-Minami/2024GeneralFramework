@@ -477,21 +477,20 @@ void StartIMU_Read(void *argument)
 * @retval None
 */
 /* USER CODE END Header_StartTask08 */
-_send_packetinfo sd;
-uint8_t RecePackage[48];
 void StartTask08(void *argument)
 {
   /* USER CODE BEGIN StartTask08 */
 
-		  sd = (_sendpacket *)malloc(sizeof(_sendpacket));
-//		  uint8_t temp_CRC[14];
-		  receinfo = (_receive_packetinfo)malloc(sizeof(_receive_packet));
-		  sd->header = 0X5A;
-		  sd->robot_color = 1;
-		  sd->task_mode= 2;
-		  sd->reserve = 5;
+		_send_packetinfo sd;
+		uint8_t RecePackage[sizeof(_receive_packet)];
+		sd = (_sendpacket *)malloc(sizeof(_sendpacket));
+		receinfo = (_receive_packetinfo)malloc(sizeof(_receive_packet));
+		sd->header = 0X5A;
+		sd->robot_color = 1;
+		sd->task_mode= 2;
+		sd->reserve = 5;
 
-		  sd->checksum=0X00;
+		sd->checksum=0X00;
 
 	  /* Infinite loop */
 	  for(;;)
@@ -502,10 +501,9 @@ void StartTask08(void *argument)
 		  sd->aim_x = 2.0;
 		  sd->aim_y = 1.0;
 		  sd->aim_z = 1.0;
-		  //memmove(temp_CRC,sd,10);
-//		  sd->checksum=Get_CRC16_Check_Sum(sd, temp_CRC, SendData, 24, 0xFFFF);
+//		  Append CRC and Send data
 		  Pack_And_Send_Data_ROS2(sd,(size_t)sizeof(_sendpacket));
-		  CDC_Receive_ROS2(RecePackage, 48, receinfo);
+		  CDC_Receive_ROS2(RecePackage, (size_t)sizeof(_receive_packet), receinfo);
 		  osDelay(1);
 	  }
   /* USER CODE END StartTask08 */
