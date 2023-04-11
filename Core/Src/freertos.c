@@ -321,8 +321,13 @@ void fun_ChangeTarget(void *argument)
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
-			speed_x_commend = 0.9*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 0.9*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			speed_x_commend = 1.2*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 1.2*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			if(speed_x_commend&&speed_y_commend)
+			{
+				speed_x_commend *= 0.8485/1.2;
+				speed_y_commend *= 0.8485/1.2;
+			}
 
 			Chassis_angleTransform();
 
@@ -344,7 +349,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle > 3700) Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900) Motor[Motor_Pitch_ID].target_angle = 2900;
 
-			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 220)
+			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 200)
 				Motor[Motor_AmmoFeed_ID].target_speed = 1800*(RC_Ctl.keyboard.l);
 			else Motor[Motor_AmmoFeed_ID].target_speed = 0;
 
@@ -389,7 +394,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle < 2900)
 				Motor[Motor_Pitch_ID].target_angle = 2900;
 			/*****拨弹轮控制输�??******/
-			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 220)
+			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 200)
 			{
 				Motor[Motor_AmmoFeed_ID].target_speed = 1800;
 			}

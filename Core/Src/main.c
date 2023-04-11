@@ -244,7 +244,6 @@ void PWM_INIT(){
 	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	  HAL_TIM_Base_Start(&htim3);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,1000);
 }
 void SPEED_INIT(int speed){
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1000);
@@ -255,11 +254,7 @@ void SPEED_INIT(int speed){
 void SPEED_SET(int speed){
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1295);
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,1295);
-//	  HAL_Delay(500);
-//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,0);
-//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,0);
-//	  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
-//	  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,1000);
 }
 /* USER CODE END 4 */
 
