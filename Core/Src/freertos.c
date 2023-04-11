@@ -163,7 +163,7 @@ void MX_FREERTOS_Init(void) {
   ReceiveMessageHandle = osThreadNew(startReceiveMessage, NULL, &ReceiveMessage_attributes);
 
   /* creation of ChangeTarget */
-  ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
+  //ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
 
   /* creation of IMU_Read */
   IMU_ReadHandle = osThreadNew(StartIMU_Read, NULL, &IMU_Read_attributes);

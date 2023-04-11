@@ -15,11 +15,12 @@
 #include <stdlib.h>
 #include "WatchDog.h"
 RC_Ctl_t RC_Ctl;
-uint8_t RC_buff[18]={0},count_remote_skip;
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+uint8_t RC_buff[20],count_remote_skip;
+void USART3_IRQHandler(void)
 {
-	if(huart->Instance == USART3)
-	{
+	if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
+	__HAL_UART_CLEAR_IDLEFLAG(&huart3);
+    HAL_UART_IRQHandler(&huart3);
 		feedDog(&remote_WatchDog);//进回调则喂狗
 		RC_Ctl.rc.ch1 = (RC_buff[0] | RC_buff[1] << 8) & 0x07FF;
 		RC_Ctl.rc.ch1 -= 1024;
@@ -55,10 +56,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	            (abs(RC_Ctl.rc.ch4) > 660))
 	    {
 	        memset(&RC_Ctl, 0, sizeof(RC_Ctl));
-	        return ;
+	        memset(&RC_buff, 0, sizeof(RC_Ctl));
 	    }
-//
-//	    RC_Ctl.rc.mouse.x b= RC_buff[6] | (RC_buff[7] << 8); // x axis
+
+//	    RC_Ctl.rc.mouse.x = RC_buff[6] | (RC_buff[7] << 8); // x axis
 //	    RC_Ctl.rc.mouse.y = RC_buff[8] | (RC_buff[9] << 8);
 //	    RC_Ctl.rc.mouse.z = RC_buff[10] | (RC_buff[11] << 8);
 //
@@ -69,5 +70,4 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	    RC_Ctl.rc.wheel = (RC_buff[16] | RC_buff[17] << 8) - 1024;
 	    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化DMA
 	    __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
-	}
 }
