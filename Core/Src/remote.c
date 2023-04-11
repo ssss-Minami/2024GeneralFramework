@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "WatchDog.h"
 RC_Ctl_t RC_Ctl;
-uint8_t RC_buff[18],count_remote_skip;
+uint8_t RC_buff[18]={0},count_remote_skip;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART3)
