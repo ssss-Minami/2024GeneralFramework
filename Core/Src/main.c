@@ -72,9 +72,7 @@ void Can_MessageConfig(void);
 void Can_Filter1Config(void);
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
-void PWM_INIT();
-void SPEED_INIT(int speed);
-void SPEED_SET(int speed);
+
 
 /* USER CODE END PFP */
 
@@ -135,9 +133,6 @@ int main(void)
   KalmanFilter_Init(&Klm_Motor[0]);
   HAL_Delay(1000);
   PWM_INIT();
-
-  SPEED_INIT(1);
-  SPEED_SET(1000);
   BMI088_init();
   IST8310_init();
   Motor[Motor_Yaw_ID].target_angle = 0;

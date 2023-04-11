@@ -55,7 +55,7 @@
 extern uint8_t Message[];
 float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
-uint8_t Motor_Status;
+uint8_t Motor_Status,Motor_Status_last;
 _send_packetinfo sd;
 /* USER CODE END PD */
 
@@ -302,6 +302,8 @@ void fun_ChangeTarget(void *argument)
   /* Infinite loop */
 	for(;;)
   {
+		Motor_Status_last = Motor_Status;
+		Motor_Status = 1;
 		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状�?�更�?
 		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更�?
 		for(uint8_t i=1;i<8;i++)
@@ -310,16 +312,18 @@ void fun_ChangeTarget(void *argument)
 			if(!motor_WatchDog[i].status)
 				Motor_Status = 0;
 		}
+		if(!Motor_Status_last)
+			if(Motor_Status)
+			{
+				SPEED_INIT(1);
+				SPEED_SET(1000);
+			}
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
 			speed_x_commend = 0.9*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
 			speed_y_commend = 0.9*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
-//			if(speed_x_commend&&speed_y_commend)
-//			{
-//				speed_x_commend /= 1.5;
-//				speed_y_commend /= 1.5;
-//			}
+
 			Chassis_angleTransform();
 
 			if(receinfo->tracking && RC_Ctl.keyboard.r)
@@ -340,7 +344,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle > 3700) Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900) Motor[Motor_Pitch_ID].target_angle = 2900;
 
-			Motor[Motor_AmmoFeed_ID].target_speed = 1200*(RC_Ctl.keyboard.l);
+			Motor[Motor_AmmoFeed_ID].target_speed = 1800*(RC_Ctl.keyboard.l);
 			if(RC_Ctl.keyboard.SHIFT)
 			{
 				PID_Motor_Angle[6].Ki = 0.25;
@@ -384,7 +388,7 @@ void fun_ChangeTarget(void *argument)
 			/*****拨弹轮控制输�??******/
 			if(RC_Ctl.rc.wheel)
 			{
-				Motor[Motor_AmmoFeed_ID].target_speed = 1200;
+				Motor[Motor_AmmoFeed_ID].target_speed = 1800;
 			}
 			else
 			{
@@ -396,24 +400,21 @@ void fun_ChangeTarget(void *argument)
 				PID_Motor_Angle[6].Ki = 0.1;
 				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();//小陀�??
-	//			Motor[Motor_Yaw_ID].target_speed = 45;
 			}
 			else if(RC_Ctl.rc.sw2 == 1)
 			{
 				PID_Motor_Angle[6].Ki = 0;
 				PID_Motor_Angle[6].Err_sum_Max = 100;
 				Chassis_Follow();//底盘跟随
-	//			Motor[Motor_Yaw_ID].target_speed = 0;
 			}
 			else {
 				PID_Motor_Angle[6].Ki = 0;
 				PID_Motor_Angle[6].Err_sum_Max = 50;
 				omega = 0;//底盘不跟�??
-	//			Motor[Motor_Yaw_ID].target_speed = 0;
 			}
 		}
 		/**掉线保护***/
-		if((!remote_WatchDog.status && !referee_WatchDog.status))//遥控器和图传均掉线时pid超参数与输出全部�?0
+		if((!remote_WatchDog.status && !referee_WatchDog.status) || !Motor_Status)//遥控器和图传均掉线时pid超参数与输出全部�?0
 		{
 			for(int i=0;i<8;i++)
 			{
@@ -430,7 +431,6 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
 			PID_Init();
-		Motor_Status = 1;
 		osDelay(5);
   }
 

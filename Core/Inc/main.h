@@ -53,7 +53,9 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void PWM_INIT();
+void SPEED_INIT(int speed);
+void SPEED_SET(int speed);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

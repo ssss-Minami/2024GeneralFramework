@@ -74,24 +74,24 @@ void Chassis_PowerCtrl(void)
 		if(Ref_Info.Power_Heat_Data.chassis_power_buffer == 0)
 			Power_limit = 80;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 10)
-			Power_limit = 110;
+			Power_limit = 95;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 20)
-			Power_limit = 115;
+			Power_limit = 100;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 30)
-			Power_limit = 120;
+			Power_limit = 105;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 40)
-			Power_limit = 125;
+			Power_limit = 110;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 50)
-			Power_limit = 130;
+			Power_limit = 115;
 		else if(Ref_Info.Power_Heat_Data.chassis_power_buffer < 60)
-			Power_limit = 135;
-	}
+			Power_limit = 120;
+
 	for(int i=0;i<4;i++)
 		{
 			Chassis_ctrl[i] *= (Power_limit)/Ref_Info.Power_Heat_Data.chassis_power;
 		}
+	}
 }
-
 /*
  * @brief	底盘跟随状态
  * @param	底盘与云台相对夹角
@@ -110,17 +110,10 @@ void Chassis_Follow(void)
  */
 void Chassis_Spin(void)
 {
-	static float spin_count;
-
-	spin_count += 0.01;
-
-	if(spin_count >= PI)
-		spin_count -= 2*PI;
-	else if(spin_count <= -PI)
-		spin_count += 2*PI;
-
-//	omega = 1.5 + fabs(sin(spin_count));
-	omega = 5;
+	if(speed_x||speed_y)
+		omega = 2.5;
+	else
+		omega = 5;
 }
 /*
  * @brief	云台速度解算到底盘
