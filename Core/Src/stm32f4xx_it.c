@@ -354,18 +354,18 @@ void SPI1_IRQHandler(void)
 /**
   * @brief This function handles USART3 global interrupt.
   */
-void USART3_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART3_IRQn 0 */
-
-	if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
-		__HAL_UART_CLEAR_IDLEFLAG(&huart3);
-  /* USER CODE END USART3_IRQn 0 */
-  HAL_UART_IRQHandler(&huart3);
-  /* USER CODE BEGIN USART3_IRQn 1 */
-
-  /* USER CODE END USART3_IRQn 1 */
-}
+//void USART3_IRQHandler(void)
+//{
+//  /* USER CODE BEGIN USART3_IRQn 0 */
+//
+//	if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
+//		__HAL_UART_CLEAR_IDLEFLAG(&huart3);
+//  /* USER CODE END USART3_IRQn 0 */
+//  HAL_UART_IRQHandler(&huart3);
+//  /* USER CODE BEGIN USART3_IRQn 1 */
+//
+//  /* USER CODE END USART3_IRQn 1 */
+//}
 
 /**
   * @brief This function handles TIM5 global interrupt.
