@@ -3,7 +3,7 @@
  * @brief		usb-cdc通信程序，用于上位机和stm32的通信，需配合上位机代码使用
  * @history
  * 版本			作者			编写日期
- * v1.0.0		许金帅		2023/4/1
+ * v1.1.0		许金帅		2023/4/11
  *
  */
 #include "stm32f4xx_hal.h"
@@ -13,18 +13,12 @@
 #include "Serial.h"
 
 int CDC_SendFeed(uint8_t* Fed, uint16_t Len);//CDC发送反馈数据的函数
-int CDC_Receive(uint8_t* Buf, uint16_t Len,_controldata_chassisInfo concha,_controldata_panInfo conpan);//CDC接收控制数据的函数
 _receive_packetinfo receinfo;
-void Pack_Data(_FeedBack* feedback,uint8_t* feedArray);//打包反馈的信息
-void UnPack_Data_Cha(uint8_t *ConChaArray,_controldata_chassisInfo concha);//解码收到的底盘控制数据
-void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan);//解码收到的云台控制数据
 //ROS2相关代码
 //void Pack_And_Send_Data_ROS2(_send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* sendData,uint16_t Len);//打包以及发送函数
 void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info,uint16_t Len);//解包函数
 int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo);//接收函数
-void Data_Select(uint8_t* Origin_Data,uint8_t* Finish_Data);//剔除无用发送数据
 //uint16_t Get_CRC16_Check_Sum( _send_packetinfo sendinfo,uint8_t* TempArray,uint8_t* pchMessage,uint32_t dwLength, uint16_t wCRC);//CRC校验码生成
-
 //这是CRC校验码的数据表
 const uint16_t CRC_Data[256]={ /* CRC 字节余式表 */
 		    0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf, 0x8c48,
@@ -71,79 +65,11 @@ int CDC_SendFeed(uint8_t* Fed, uint16_t Len)
 }
 
 /**
-  * @brief  接收上位机传入的数据包
-  * @param
-		Buf 指向一个_FeedBack的指针
-	    Len 传入数据的长度
-	    concha 底盘控制信息的结构体
-	    conpan 云台控制信息的结构体
-  * @retval 0  暂时没有意义
-  */
-int CDC_Receive(uint8_t* Buf, uint16_t Len,_controldata_chassisInfo concha,_controldata_panInfo conpan)
-{
-	CDC_Receive_FS(Buf, &Len);
-	if(Buf[0]==0xFA)UnPack_Data_Cha(Buf, concha);
-	else if(Buf[0]==0xFB)UnPack_Data_pan(Buf, conpan);
-	else return -1;
-	return 0;
-}
-
-/**
-  * @param
-		feedback 指向一个_FeedBack的指针
-	    feedArray 由数据段重组的uint8类型数组
-  * @retval 无
-  */
-void Pack_Data(_FeedBack* feedback,uint8_t* feedArray)
-{	//把数组中信息封入数据包中
-	feedArray[0] = 0XFF;//这是帧头
-	feedArray[1] = feedback->Shoot_Mode;
-	feedArray[2] = feedback->Shoot_Speed;
-	feedArray[3] = feedback->Armor_Id;
-	feedArray[4] = (uint8_t)(feedback->HP_Remain);
-	feedArray[5] = (uint8_t)(feedback->HP_Remain >> 8);
-	feedArray[6] = 0XAA;//暂时无意义
-	feedArray[7] = 0XFE;//芝士帧尾
-}
-
-/**
-  * @brief  将接收到的控制数组拆分为对应的结构体
-  * @param
-        ConChaArray 传入底盘控制数组
-        concha 底盘控制信息的结构体
-  * @retval 无
-  */
-void UnPack_Data_Cha(uint8_t *ConChaArray,_controldata_chassisInfo concha)
-{
-	concha->x_Speed=ConChaArray[1];
-	concha->y_Speed=ConChaArray[2];
-	concha->rotational_speed=ConChaArray[3];
-	concha->chassis_state=ConChaArray[4];
-}
-
-/**
-  * @brief  将接收到的控制数组拆分为对应的结构体
-  * @param
-		ConpanArray 传入云台控制数组
-		conpan 云台控制数组的结构体
-  * @retval 无
-  */
-void UnPack_Data_pan(uint8_t *ConpanArray,_controldata_panInfo conpan)
-{
-	conpan->pitch_angle = ConpanArray[1] | ConpanArray[2] <<8;
-	conpan->yaw_angle = ConpanArray[3] | ConpanArray[4] <<8;
-	conpan->shoot_mode = ConpanArray[5];
-	conpan->shoot_speed = ConpanArray[6];
-}
-
-
-//以下是为了与ROS2而特制的接收发送代码
-
-/**
   * @brief  将接收到的控制数组拆分为对应的结构体
   * @param
 		receive_Array 接收到的数据数组
 		receive_info 接收数据的结构体
+		Len 接收数组的长度
   * @retval 无
   */
 void UnPack_Data_ROS2(uint8_t *receive_Array,_receive_packetinfo receive_info,uint16_t Len)
@@ -175,8 +101,6 @@ int CDC_Receive_ROS2(uint8_t* Buf, uint16_t Len,_receive_packetinfo packinfo)
   * @brief  将对应的结构体打包为缓冲数组
   * @param
 		sendinfo  要发送的结构体
-		TempArray 用于暂存数据的缓冲数组
-		sendData  存放最终发送的实际数据
 		Len       确定发送的字节长度
   * @retval 无
   */
