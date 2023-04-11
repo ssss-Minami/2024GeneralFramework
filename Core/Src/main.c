@@ -260,7 +260,7 @@ void PWM_INIT(){
 	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	  HAL_TIM_Base_Start(&htim3);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,200);
+	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,1000);
 }
 void SPEED_INIT(int speed){
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1000);
