@@ -355,14 +355,24 @@ void fun_ChangeTarget(void *argument)
 
 			if(RC_Ctl.keyboard.SHIFT)
 			{
-				PID_Motor_Angle[6].Ki = 0.25;
-				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();
 			}
 			else {
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
 				Chassis_Follow();
+			}
+
+
+			if(omega > 3)
+			{
+				PID_Motor_Angle[6].Ki = 0.25;
+			}
+			else if(omega >1)
+			{
+				PID_Motor_Angle[6].Ki = 0.1;
+			}
+			else
+			{
+				PID_Motor_Angle[6].Ki = 0;
 			}
 		}
 		else if(remote_WatchDog.status)
@@ -405,20 +415,28 @@ void fun_ChangeTarget(void *argument)
 			/****底盘状�?��?�择****/
 			if(RC_Ctl.rc.sw2 == 2)
 			{
-				PID_Motor_Angle[6].Ki = 0.1;
-				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();//小陀�??
 			}
 			else if(RC_Ctl.rc.sw2 == 1)
 			{
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
 				Chassis_Follow();//底盘跟随
 			}
 			else {
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 50;
 				omega = 0;//底盘不跟�??
+			}
+
+
+			if(omega > 3)
+			{
+				PID_Motor_Angle[6].Ki = 0.25;
+			}
+			else if(omega >1)
+			{
+				PID_Motor_Angle[6].Ki = 0.1;
+			}
+			else
+			{
+				PID_Motor_Angle[6].Ki = 0;
 			}
 		}
 		/**掉线保护***/

@@ -58,7 +58,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	        return ;
 	    }
 //
-//	    RC_Ctl.rc.mouse.x = RC_buff[6] | (RC_buff[7] << 8); // x axis
+//	    RC_Ctl.rc.mouse.x b= RC_buff[6] | (RC_buff[7] << 8); // x axis
 //	    RC_Ctl.rc.mouse.y = RC_buff[8] | (RC_buff[9] << 8);
 //	    RC_Ctl.rc.mouse.z = RC_buff[10] | (RC_buff[11] << 8);
 //
