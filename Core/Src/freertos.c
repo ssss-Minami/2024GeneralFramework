@@ -357,16 +357,21 @@ void fun_ChangeTarget(void *argument)
 			{
 				Chassis_Spin();
 			}
-			else {
+			else if(RC_Ctl.keyboard.CTRL)
+			{
 				Chassis_Follow();
+			}
+			else {
+//				Chassis_Follow();
+				omega = 0;
 			}
 
 
-			if(omega > 3)
+			if(fabs(omega) > 3)
 			{
 				PID_Motor_Angle[6].Ki = 0.25;
 			}
-			else if(omega >1)
+			else if(fabs(omega) >1)
 			{
 				PID_Motor_Angle[6].Ki = 0.1;
 			}
@@ -426,17 +431,20 @@ void fun_ChangeTarget(void *argument)
 			}
 
 
-			if(omega > 3)
+			if(fabs(omega) > 3)
 			{
 				PID_Motor_Angle[6].Ki = 0.25;
+				PID_Motor_Angle[6].Err_sum_Max = 250;
 			}
-			else if(omega >1)
+			else if(fabs(omega) >1)
 			{
 				PID_Motor_Angle[6].Ki = 0.1;
+				PID_Motor_Angle[6].Err_sum_Max = 200;
 			}
 			else
 			{
 				PID_Motor_Angle[6].Ki = 0;
+				PID_Motor_Angle[6].Err_sum_Max = 100;
 			}
 		}
 		/**掉线保护***/

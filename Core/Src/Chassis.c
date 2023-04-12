@@ -109,10 +109,20 @@ void Chassis_Follow(void)
  */
 void Chassis_Spin(void)
 {
+	static float count = 0;
 	if(speed_x||speed_y)
-		omega = 2;
-	else
-		omega = 5;
+	{
+		if(count > 0.0)
+			count -= 0.01;
+		omega = 2 + count;
+	}
+	else{
+		if(count < 3.0)
+			count += 0.01;
+		omega = 2 + count;
+	}
+	if(omega > 5.0)
+		omega = 5.0;
 }
 /*
  * @brief	云台速度解算到底盘
