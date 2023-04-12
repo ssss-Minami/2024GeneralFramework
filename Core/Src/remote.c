@@ -39,8 +39,9 @@ void Remote_restart()//重启串口和DMA，针对于数据错位和无法进入
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if(huart->Instance == USART3)
-	{
+	if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
+	__HAL_UART_CLEAR_IDLEFLAG(&huart3);
+    HAL_UART_IRQHandler(&huart3);
 		feedDog(&remote_WatchDog);//进回调则喂狗
 		RC_Ctl.rc.ch1 = (RC_buff[0] | RC_buff[1] << 8) & 0x07FF;
 		RC_Ctl.rc.ch1 -= 1024;
@@ -79,7 +80,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	        Remote_restart();
 	        return ;
 	    }
-//
+
 //	    RC_Ctl.rc.mouse.x = RC_buff[6] | (RC_buff[7] << 8); // x axis
 //	    RC_Ctl.rc.mouse.y = RC_buff[8] | (RC_buff[9] << 8);
 //	    RC_Ctl.rc.mouse.z = RC_buff[10] | (RC_buff[11] << 8);
@@ -91,7 +92,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	    RC_Ctl.rc.wheel = (RC_buff[16] | RC_buff[17] << 8) - 1024;
 	    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化DMA
 	    __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
-	}
 }
 //判断遥控器数据是否出错，
 uint8_t Remote_data_is_error(void)

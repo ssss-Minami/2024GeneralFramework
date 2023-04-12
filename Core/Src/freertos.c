@@ -163,7 +163,7 @@ void MX_FREERTOS_Init(void) {
   ReceiveMessageHandle = osThreadNew(startReceiveMessage, NULL, &ReceiveMessage_attributes);
 
   /* creation of ChangeTarget */
-  ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
+  //ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
 
   /* creation of IMU_Read */
   IMU_ReadHandle = osThreadNew(StartIMU_Read, NULL, &IMU_Read_attributes);
@@ -321,8 +321,13 @@ void fun_ChangeTarget(void *argument)
 		if(referee_WatchDog.status)
 		{
 			/**********************键鼠控制******************************/
-			speed_x_commend = 0.9*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 0.9*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			speed_x_commend = 1.2*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 1.2*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			if(speed_x_commend&&speed_y_commend)
+			{
+				speed_x_commend *= 0.8485/1.2;
+				speed_y_commend *= 0.8485/1.2;
+			}
 
 			Chassis_angleTransform();
 
@@ -344,20 +349,35 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle > 3700) Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900) Motor[Motor_Pitch_ID].target_angle = 2900;
 
-			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 220)
+			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 200)
 				Motor[Motor_AmmoFeed_ID].target_speed = 1800*(RC_Ctl.keyboard.l);
 			else Motor[Motor_AmmoFeed_ID].target_speed = 0;
 
 			if(RC_Ctl.keyboard.SHIFT)
 			{
-				PID_Motor_Angle[6].Ki = 0.25;
-				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();
 			}
-			else {
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
+			else if(RC_Ctl.keyboard.CTRL)
+			{
 				Chassis_Follow();
+			}
+			else {
+//				Chassis_Follow();
+				omega = 0;
+			}
+
+
+			if(fabs(omega) > 3)
+			{
+				PID_Motor_Angle[6].Ki = 0.25;
+			}
+			else if(fabs(omega) >1)
+			{
+				PID_Motor_Angle[6].Ki = 0.1;
+			}
+			else
+			{
+				PID_Motor_Angle[6].Ki = 0;
 			}
 		}
 		else if(remote_WatchDog.status)
@@ -389,7 +409,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle < 2900)
 				Motor[Motor_Pitch_ID].target_angle = 2900;
 			/*****拨弹轮控制输�??******/
-			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 220)
+			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 200)
 			{
 				Motor[Motor_AmmoFeed_ID].target_speed = 1800;
 			}
@@ -400,20 +420,31 @@ void fun_ChangeTarget(void *argument)
 			/****底盘状�?��?�择****/
 			if(RC_Ctl.rc.sw2 == 2)
 			{
-				PID_Motor_Angle[6].Ki = 0.1;
-				PID_Motor_Angle[6].Err_sum_Max = 300;
 				Chassis_Spin();//小陀�??
 			}
 			else if(RC_Ctl.rc.sw2 == 1)
 			{
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
 				Chassis_Follow();//底盘跟随
 			}
 			else {
-				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 50;
 				omega = 0;//底盘不跟�??
+			}
+
+
+			if(fabs(omega) > 3)
+			{
+				PID_Motor_Angle[6].Ki = 0.25;
+				PID_Motor_Angle[6].Err_sum_Max = 250;
+			}
+			else if(fabs(omega) >1)
+			{
+				PID_Motor_Angle[6].Ki = 0.1;
+				PID_Motor_Angle[6].Err_sum_Max = 200;
+			}
+			else
+			{
+				PID_Motor_Angle[6].Ki = 0;
+				PID_Motor_Angle[6].Err_sum_Max = 100;
 			}
 		}
 		/**掉线保护***/

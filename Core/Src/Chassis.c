@@ -22,8 +22,6 @@ float speed_x = 0,speed_y = 0,omega = 0,speed_x_commend = 0,speed_y_commend = 0,
  */
 void Chassis_Ctrl(void)
 {
-				//功率限制
-		Chassis_PowerCtrl();
 		for(int i=1;i<5;i++)
 			{
 				PID_Incr(&PID_Motor_Speed[i],Motor[i].speed,Motor[i].target_speed);
@@ -33,7 +31,8 @@ void Chassis_Ctrl(void)
 				if(Chassis_ctrl[i-1]<-16384)
 					Chassis_ctrl[i-1] = -16384;
 			}
-
+		//功率限制
+		Chassis_PowerCtrl();
 }
 
 /*
@@ -110,10 +109,20 @@ void Chassis_Follow(void)
  */
 void Chassis_Spin(void)
 {
+	static float count = 0;
 	if(speed_x||speed_y)
-		omega = 2.5;
-	else
-		omega = 5;
+	{
+		if(count > 0.0)
+			count -= 0.01;
+		omega = 2 + count;
+	}
+	else{
+		if(count < 3.0)
+			count += 0.01;
+		omega = 2 + count;
+	}
+	if(omega > 5.0)
+		omega = 5.0;
 }
 /*
  * @brief	云台速度解算到底盘
