@@ -34,8 +34,8 @@ void Remote_restart()//重启串口和DMA，针对于数据错位和无法进入
 	__HAL_DMA_CLEAR_FLAG(&hdma_usart3_rx,DMA_IT_TC);
     __HAL_RCC_USART3_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
-    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化DMA
-    __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
+    memset(&RC_Ctl, 0, sizeof(RC_Ctl));
+    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
