@@ -163,7 +163,7 @@ void MX_FREERTOS_Init(void) {
   ReceiveMessageHandle = osThreadNew(startReceiveMessage, NULL, &ReceiveMessage_attributes);
 
   /* creation of ChangeTarget */
-  ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
+  //ChangeTargetHandle = osThreadNew(fun_ChangeTarget, NULL, &ChangeTarget_attributes);
 
   /* creation of IMU_Read */
   IMU_ReadHandle = osThreadNew(StartIMU_Read, NULL, &IMU_Read_attributes);
@@ -333,7 +333,9 @@ void fun_ChangeTarget(void *argument)
 
 			if(receinfo->tracking && RC_Ctl.keyboard.r)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				if(Ref_Info.Shoot_Data.bullet_speed)
+					GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, Ref_Info.Shoot_Data.bullet_speed, 0.076);
+				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 17.3, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -391,7 +393,9 @@ void fun_ChangeTarget(void *argument)
 			/***自瞄***/
 			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				if(Ref_Info.Shoot_Data.bullet_speed)
+					GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, Ref_Info.Shoot_Data.bullet_speed, 0.076);
+				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 17.3, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
