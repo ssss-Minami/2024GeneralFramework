@@ -22,6 +22,8 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "remote.h"//重启遥控器接收机所必需的头文件
+#include "WatchDog.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -356,15 +358,18 @@ void SPI1_IRQHandler(void)
   */
 void USART3_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART3_IRQn 0 */
+	  /* USER CODE BEGIN USART3_IRQn 0 */
 
-	if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
-		__HAL_UART_CLEAR_IDLEFLAG(&huart3);
-  /* USER CODE END USART3_IRQn 0 */
-  HAL_UART_IRQHandler(&huart3);
-  /* USER CODE BEGIN USART3_IRQn 1 */
+		if(__HAL_UART_GET_FLAG(&huart3,UART_FLAG_IDLE) != RESET)
+			__HAL_UART_CLEAR_IDLEFLAG(&huart3);
+		if(!remote_WatchDog.status){
+			Remote_restart();
+		}
+	  /* USER CODE END USART3_IRQn 0 */
+	  HAL_UART_IRQHandler(&huart3);
+	  /* USER CODE BEGIN USART3_IRQn 1 */
 
-  /* USER CODE END USART3_IRQn 1 */
+	  /* USER CODE END USART3_IRQn 1 */
 }
 
 /**
