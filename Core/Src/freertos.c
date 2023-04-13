@@ -316,7 +316,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor_Status)
 			{
 				SPEED_INIT(1);
-				SPEED_SET(1000);
+//				SPEED_SET(1000);
 			}
 		if(referee_WatchDog.status)
 		{
@@ -333,7 +333,8 @@ void fun_ChangeTarget(void *argument)
 
 			if(receinfo->tracking && RC_Ctl.keyboard.r)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, Ref_Info.Shoot_Data.bullet_speed, 0.076);
+				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 17.3, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -391,7 +392,8 @@ void fun_ChangeTarget(void *argument)
 			/***自瞄***/
 			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
 			{
-				GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 18, 0.076);
+				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, Ref_Info.Shoot_Data.bullet_speed, 0.076);
+				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, 17.3, 0.076);
 				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
 						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -535,7 +537,7 @@ void StartTask08(void *argument)
 		sd = (_sendpacket *)malloc(sizeof(_sendpacket));
 		receinfo = (_receive_packetinfo)malloc(sizeof(_receive_packet));
 		sd->header = 0X5A;
-		sd->robot_color = 1;
+
 		sd->task_mode= 2;
 		sd->reserve = 5;
 
@@ -547,6 +549,10 @@ void StartTask08(void *argument)
 		  /***向上位机发�?�角�??***/
 		  sd->pitch = angle_pitch;
 		  sd->yaw = angle_yaw;
+		  if(Ref_Info.Game_Robot_state.robot_id > 0&&Ref_Info.Game_Robot_state.robot_id < 10)
+			  sd->robot_color = 1;
+		  else if(Ref_Info.Game_Robot_state.robot_id > 100&&Ref_Info.Game_Robot_state.robot_id < 110)
+			  sd->robot_color = 0;
 		  if(!receinfo->tracking)
 		  {
 			  sd->aim_x = 0;

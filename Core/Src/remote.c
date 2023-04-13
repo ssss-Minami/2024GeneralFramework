@@ -57,15 +57,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	        memset(&RC_Ctl, 0, sizeof(RC_Ctl));
 	        return ;
 	    }
-//
-//	    RC_Ctl.rc.mouse.x b= RC_buff[6] | (RC_buff[7] << 8); // x axis
-//	    RC_Ctl.rc.mouse.y = RC_buff[8] | (RC_buff[9] << 8);
-//	    RC_Ctl.rc.mouse.z = RC_buff[10] | (RC_buff[11] << 8);
-//
-//	    RC_Ctl.rc.mouse.l = RC_buff[12];
-//	    RC_Ctl.rc.mouse.r = RC_buff[13];
-//
-//	    RC_Ctl.rc.kb.key_code = RC_buff[14] | RC_buff[15] << 8; // key borad code
 	    RC_Ctl.rc.wheel = (RC_buff[16] | RC_buff[17] << 8) - 1024;
 	    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化DMA
 	    __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
