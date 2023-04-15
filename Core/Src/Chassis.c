@@ -98,7 +98,7 @@ void Chassis_PowerCtrl(void)
  */
 void Chassis_Follow(void)
 {
-	PID_Origin(&PID_Motor_Angle[Chassis_Angle_ID], Motor[Motor_Yaw_ID].angle, 3430);
+	PID_Origin(&PID_Motor_Angle[Chassis_Angle_ID], Motor[Motor_Yaw_ID].angle, 7520);
 	//底盘角度环,以底盘与云台的相对角度为输入
 	omega = -PID_Motor_Angle[Chassis_Angle_ID].Output;
 }
@@ -132,7 +132,7 @@ void Chassis_Spin(void)
 void Chassis_angleTransform(void)
 {
 	uint16_t temp;
-	temp = (Motor[Motor_Yaw_ID].angle - 3392);
+	temp = (Motor[Motor_Yaw_ID].angle - 7520);
 	if(temp>=4096)
 		temp = -(8192-temp);
 	angle_rad = temp*PI/4096;

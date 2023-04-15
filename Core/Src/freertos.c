@@ -316,7 +316,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor_Status)
 			{
 				SPEED_INIT(1);
-//				SPEED_SET(1000);
+				SPEED_SET(1000);
 			}
 		if(referee_WatchDog.status)
 		{
