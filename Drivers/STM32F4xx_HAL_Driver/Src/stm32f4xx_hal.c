@@ -158,7 +158,7 @@ HAL_StatusTypeDef HAL_Init(void)
 {
   /* Configure Flash prefetch, Instruction cache, Data cache */ 
 #if (INSTRUCTION_CACHE_ENABLE != 0U)
-  __HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
 #endif /* INSTRUCTION_CACHE_ENABLE */
 
 #if (DATA_CACHE_ENABLE != 0U)
