@@ -31,7 +31,7 @@ void feedDog(WatchDog_t* hdog)
  */
 uint8_t Dog_Status_update(WatchDog_t* hdog)
 {
-	if(uwTick - hdog->last_time > 750)//此处修改最小判断离线时间，单位ms
+	if(uwTick - hdog->last_time > 1000)//此处修改最小判断离线时间，单位ms
 		hdog->status = 0;
 	return hdog->status;
 }
