@@ -29,6 +29,7 @@ typedef struct ReceivePacket{
 	float r1;
 	float r2;
 	float z_2;
+	uint8_t armor_type; //装甲板类型 0为小 1为大
 	uint16_t checksum;
 }__attribute__((packed))_receivepacket,*_receive_packetinfo;
 

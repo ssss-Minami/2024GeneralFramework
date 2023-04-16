@@ -17,6 +17,7 @@ struct SolveTrajectory
     float tar_r1;        //目标中心到前后装甲板的距离
     float tar_r2;        //目标中心到左右装甲板的距离
     float z2;            //目标中心到左右装甲板的距离
+    uint8_t armor_type;  //0为小装甲板 1为大
 };
 
 struct tar_pos
@@ -27,7 +28,7 @@ struct tar_pos
     float yaw;
 };
 
-extern void GimbalControlInit(float pitch, float yaw, float tar_yaw , float v_yaw, float r1, float r2, float z2, float v, float k);
+extern void GimbalControlInit(float pitch, float yaw, float tar_yaw , float v_yaw, float r1, float r2, float z2, uint8_t armor_type, float v, float k);
 extern float GimbalControlBulletModel(float x, float v, float angle);
 extern float GimbalControlGetPitch(float x, float y, float v);
 
