@@ -429,8 +429,8 @@ typedef enum
 	graph_type_oval = 3,
 	graph_type_arc = 4,
 	graph_type_float = 5,
-	graph_type_int = 7,
-	graph_type_char = 8,
+	graph_type_int = 6,
+	graph_type_char = 7,
 
 	graph_color_R_or_B = 0,
 	graph_color_yellow = 1,
@@ -443,19 +443,20 @@ typedef enum
 	graph_color_white = 8,
 
 	graph_LineWidth_default = 3,
-	graph_FrontSize_default = 30,
-
+	graph_FrontSize_default = 25,
 
 	LEN_graph_TxHeader = 13,
 	LEN_graph_ID = 6,
 	LEN_data_delete = 2,
 	LEN_data_draw1 = 15,
+	LEN_data_char = 30,
 
 }graph_config;
-extern ext_robot_command_t Robot_Cmd;
-extern Referee_StatusTypeDef Referee_Status;
+
+
 extern Referee_InfoTypedef Ref_Info;
-extern graphic_data_struct_t graphic_data;
-extern graphic_TxHeader_Typedef graphic_TxHeader;
-extern void Graphic_draw(uint8_t isTracking_now, uint8_t isTracking_past);
+extern void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y);
+extern void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y);
+extern void UI_Clear_layer(uint8_t ui_layer);
+
 #endif

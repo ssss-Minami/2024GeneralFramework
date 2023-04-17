@@ -56,7 +56,9 @@ extern uint8_t Message[];
 float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
 uint8_t Motor_Status,Motor_Status_last,referee_Status_last;
+uint8_t UI_Char[][30] = {"Chassis: ", "Aim: ", "FOLLOW", "SPIN", "NORMAL", "Tracking", "Missing"};
 _send_packetinfo sd;
+uint32_t temp_start_y;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -268,7 +270,20 @@ void startReceiveMessage(void *argument)
 {
   /* USER CODE BEGIN startReceiveMessage */
 	uint8_t ammo_count=0, ammo_temp = 0;
+
 	GPIO_PinState pinstate = GPIO_PIN_SET;
+	for(int i=0;i<20;i++)
+	{
+		  UI_Print_char(UI_Char[4], graph_color_orange, 960-100, 130);
+		osDelay(100);
+		  UI_Print_char(UI_Char[0], graph_color_white, 960-300, 130);
+		osDelay(100);
+		  UI_Print_char(UI_Char[6], graph_color_orange, 960+300, 130);
+		osDelay(100);
+		  UI_Print_char(UI_Char[1], graph_color_white, 960+100, 130);
+		osDelay(100);
+	}
+
   /* Infinite loop */
   for(;;)
   {
@@ -283,8 +298,19 @@ void startReceiveMessage(void *argument)
 		  ammo_count++;
 		  ammo_temp = 0;
 	  }
-
-    osDelay(20);
+//	  UI_Clear_layer(5);
+//	  osDelay(100);
+	  temp_start_y = (uint32_t)-0.00064734*(Motor[Motor_Pitch_ID].angle)*(Motor[Motor_Pitch_ID].angle) + 4.19476248*(Motor[Motor_Pitch_ID].angle) - 6338.745832;   //落点与pitch角度映射
+	  UI_Print_rectangle(graph_color_white, 5, 900, temp_start_y, 1020, temp_start_y + 50);
+	  osDelay(100);
+//	  UI_Print_char(UI_Char[4], graph_color_orange, 960-100, 130);
+//	osDelay(100);
+//	  UI_Print_char(UI_Char[0], graph_color_white, 960-300, 130);
+//	osDelay(100);
+//	  UI_Print_char(UI_Char[6], graph_color_orange, 960+200, 130);
+//	osDelay(100);
+//	  UI_Print_char(UI_Char[1], graph_color_white, 960+100, 130);
+//	osDelay(100);
   }
   /* USER CODE END startReceiveMessage */
 }
