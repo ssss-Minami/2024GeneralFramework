@@ -478,6 +478,12 @@ void fun_ChangeTarget(void *argument)
 			Chassis_ctrl[2] = 0;
 			Chassis_ctrl[3] = 0;
 		}
+		else if(!motor_WatchDog[7].status)
+		{
+			PID_Clear(&PID_Motor_Angle[7]);
+			PID_Clear(&PID_Motor_Speed[7]);
+			temp_ammofeed = 0;
+		}
 		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
 			PID_Init();
 		osDelay(5);
