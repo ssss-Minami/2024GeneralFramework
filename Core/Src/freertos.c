@@ -55,8 +55,12 @@
 extern uint8_t Message[];
 float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
+<<<<<<< HEAD
 uint8_t Motor_Status,Motor_Status_last,referee_Status_last;
 uint8_t UI_Char[][30] = {"Chassis: ", "Aim: ", "FOLLOW", "SPIN", "NORMAL", "Tracking", "Missing"};
+=======
+uint8_t Motor_Status,Shooter_Status_last,referee_Status_last;
+>>>>>>> d008cd643ef3b78d7149338661f6b73ca4657e91
 _send_packetinfo sd;
 uint32_t temp_start_y;
 /* USER CODE END PD */
@@ -328,19 +332,21 @@ void fun_ChangeTarget(void *argument)
   /* Infinite loop */
 	for(;;)
   {
-		Motor_Status_last = Motor_Status;
 		referee_Status_last = referee_WatchDog.status;
+		Shooter_Status_last = motor_WatchDog[7].status;
 		Motor_Status = 1;
 		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状�?�更�?
 		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更�?
-		for(uint8_t i=1;i<8;i++)
+		for(uint8_t i=1;i<7;i++)
 		{
 			Dog_Status_update(&motor_WatchDog[i]);
 			if(!motor_WatchDog[i].status)
 				Motor_Status = 0;
 		}
-		if(!Motor_Status_last)
-			if(Motor_Status)
+		Dog_Status_update(&motor_WatchDog[7]);
+
+		if(!Shooter_Status_last)
+			if(motor_WatchDog[7].status)
 			{
 				SPEED_INIT(1);
 				SPEED_SET(1000);
@@ -353,12 +359,12 @@ void fun_ChangeTarget(void *argument)
 				SPEED_SET(1000);
 			}
 			/**********************键鼠控制******************************/
-			speed_x_commend = 1.2*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
-			speed_y_commend = 1.2*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
+			speed_x_commend = 1.6*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
+			speed_y_commend = 1.6*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
 			if(speed_x_commend&&speed_y_commend)
 			{
-				speed_x_commend *= 0.8485/1.2;
-				speed_y_commend *= 0.8485/1.2;
+				speed_x_commend *= 1.13/1.6;
+				speed_y_commend *= 1.13/1.6;
 			}
 
 			Chassis_angleTransform();
