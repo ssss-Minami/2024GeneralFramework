@@ -370,7 +370,7 @@ void fun_ChangeTarget(void *argument)
 
 			Chassis_angleTransform();
 
-			if(RC_Ctl.keyboard.r)
+			if(receinfo->tracking && RC_Ctl.keyboard.r)
 			{
 //				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2 ,receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
 //				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
@@ -432,7 +432,7 @@ void fun_ChangeTarget(void *argument)
 			/***云台到底盘的速度转换****/
 			Chassis_angleTransform();
 			/***自瞄***/
-			if(RC_Ctl.rc.sw1 == 1)
+			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
 			{
 //				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
 //				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
