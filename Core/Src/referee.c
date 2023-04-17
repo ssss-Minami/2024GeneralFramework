@@ -19,19 +19,10 @@ uint8_t referee_pic_rx_len;
 uint8_t referee_rx_buf[referee_buf_size];           //dma接收区
 uint8_t referee_pic_rx_buf[referee_pic_buf_size];
 uint8_t referee_tx_buf[referee_tx_buf_size];                        //maximum 128 bytes
-Referee_StatusTypeDef Referee_Status = 2;//初始默认为可用
 Referee_InfoTypedef Ref_Info;             //裁判系统数据
-ext_robot_command_t Robot_Cmd;            //图传接收数据
 
+uint8_t UI_Seq = 0;
 
-int counter_test = 0;
-uint8_t crc_ifcorrect;
-uint16_t crc16_tx_test;
-uint8_t tracking_test_now = 0, tracking_test_past = 0;
-
-uint8_t referee_test_msg[] = "IRQ_entered/n";
-graphic_data_struct_t graphic_data;
-graphic_TxHeader_Typedef graphic_TxHeader;
 
 void USART1_IRQHandler(void)
 {
@@ -44,7 +35,6 @@ void USART1_IRQHandler(void)
 	referee_rx_len = referee_buf_size - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 
 	referee_solve(referee_rx_buf);
-	Graphic_draw(1, 1);
     memset(referee_rx_buf, 0, referee_buf_size);
     HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_buf_size);
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
@@ -82,17 +72,16 @@ void USART6_IRQHandler(void)
 }
 void referee_solve(uint8_t *data)
 {
-//
-	if(data[0] != 0xA5)       //起始字节非0xA5直接跳出
-	{
-		Referee_Status = referee_error;
-		return;
-	}
 
 	uint16_t offset_frame_tail = (data[Offset_SOF_DataLength + 1]<<8) + data[Offset_SOF_DataLength]
-						+LEN_CMD_ID +LEN_FRAME_HEAD;
+							+LEN_CMD_ID +LEN_FRAME_HEAD;
 	uint16_t cmd_id = (data[Offset_cmd_ID + 1] << 8) + data[Offset_cmd_ID];
-	uint16_t data_length = (data[Offset_SOF_DataLength + 1] >> 8) + data[Offset_SOF_DataLength];
+
+	if(data[0] != 0xA5 || !Ref_Verify_CRC16_Check_Sum(data, offset_frame_tail +2)
+			           || !Verify_CRC8_Check_Sum(data, LEN_FRAME_HEAD))
+	{
+		return;
+	}
 
 	switch(cmd_id)
 	{
@@ -161,72 +150,123 @@ void referee_solve(uint8_t *data)
 			memcpy(&(RC_Ctl.keyboard), (data + Offset_data), LEN_keyboard_information);
 			break;
 	}
-//
-//	if(data[offset_frame_tail+2] == 0xA5)
-//		referee_solve(data);
+
+	if(data[offset_frame_tail+2] == 0xA5)
+		referee_solve(data +offset_frame_tail +2);
 
 }
-uint8_t temp_total_len = 0;
-uint8_t temp_data_len = 0;
-void Graphic_draw(uint8_t isTracking_now, uint8_t isTracking_past)
+
+void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y)
 {
+	memset(referee_tx_buf, 0, referee_tx_buf_size);
+	graphic_data_struct_t graphic_data;
+	graphic_TxHeader_Typedef graphic_TxHeader;
+	uint8_t pointer = 0;
+
 	graphic_TxHeader.SOF = 0xA5;
-	graphic_TxHeader.seq = 0;
+	graphic_TxHeader.seq = UI_Seq++;
+	graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1 +LEN_data_char;
+	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
+	graphic_TxHeader.Cmd_id = 0x0301;
+	graphic_TxHeader.Data_id = 0x0110;       //draw single char
+
+	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+
+	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
+	pointer += LEN_graph_TxHeader;
+
+	graphic_data.graphic_name[0] = char_to_send[0];
+	graphic_data.graphic_name[1] = char_to_send[1];
+	graphic_data.graphic_name[2] = char_to_send[2];
+	graphic_data.operate_tpye = graph_operate_add;
+	graphic_data.graphic_tpye = graph_type_char;
+	graphic_data.layer = 1;
+	graphic_data.color = ui_color;
+	graphic_data.start_angle = graph_FrontSize_default;
+	graphic_data.end_angle = 120;
+	graphic_data.width = graph_LineWidth_default;
+	graphic_data.start_x = x;
+	graphic_data.start_y = y;
+	graphic_data.radius = 0;
+	graphic_data.end_x = 0;
+	graphic_data.end_y = 0;
+	memcpy(referee_tx_buf +pointer, &graphic_data, sizeof(graphic_data));
+	pointer += sizeof(graphic_data);
+
+	memcpy(referee_tx_buf +pointer, char_to_send, LEN_data_char);
+	pointer += LEN_data_char;
+
+	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
+	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+}
+
+
+void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
+{
+	memset(referee_tx_buf, 0, referee_tx_buf_size);
+	graphic_data_struct_t graphic_data;
+	graphic_TxHeader_Typedef graphic_TxHeader;
+	uint8_t pointer = 0;
+
+	graphic_TxHeader.SOF = 0xA5;
+	graphic_TxHeader.seq = UI_Seq++;
 	graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1;
 	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
 	graphic_TxHeader.Cmd_id = 0x0301;
-	graphic_TxHeader.Data_id = 0x0101;       //draw single graphic
-	graphic_TxHeader.Tx_id = 0x5;
-	graphic_TxHeader.Rx_id = graphic_TxHeader.Tx_id + 0x100;
+	graphic_TxHeader.Data_id = 0x0101;       //draw single char
+	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
 
-//	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
-//	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
+	pointer += LEN_graph_TxHeader;
 
-
-	//	if(isTracking_now ==0 && isTracking_past == 1)            //清除
-//	{
-//		graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_delete;
-//		graphic_data.operate_tpye = graph_operate_delete;
-//		temp_total_len = LEN_graph_TxHeader + LEN_data_delete + LEN_FRAME_TAIL;
-//		temp_data_len = LEN_data_delete;
-//	}
-//	else if(isTracking_now ==1 && isTracking_past == 0)       //新增
-//	{
-//		graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1;
-//		graphic_data.operate_tpye = graph_operate_add;
-//		temp_total_len = LEN_graph_TxHeader + LEN_data_draw1 + LEN_FRAME_TAIL;
-//		temp_data_len = LEN_data_draw1;
-//	}
-//	else       //不变
-//	{
-//		graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1;
-//		graphic_data.operate_tpye = graph_operate_change;
-//		temp_total_len = LEN_graph_TxHeader + LEN_data_draw1 + LEN_FRAME_TAIL;
-//		temp_data_len = LEN_data_draw1;
-//	}
-
+	graphic_data.graphic_name[0] = 1;
+	graphic_data.graphic_name[1] = 1;
+	graphic_data.graphic_name[2] = 0;
 	graphic_data.operate_tpye = graph_operate_add;
-	temp_total_len = LEN_graph_TxHeader + LEN_data_draw1 + LEN_FRAME_TAIL;
-	temp_data_len = LEN_data_draw1;
-	memcpy(referee_tx_buf, &graphic_TxHeader, LEN_graph_TxHeader);
-
-	graphic_data.graphic_name[0] = 0x01;
-	graphic_data.graphic_name[1] = 0x01;       //若操作为清除，仅发送这两个字节以清除图层1
-	graphic_data.graphic_name[2] = 0x00;
 	graphic_data.graphic_tpye = graph_type_rectangle;
-	graphic_data.layer = 1;
-	graphic_data.color = graph_color_orange;
+	graphic_data.layer = ui_layer;
+	graphic_data.color = ui_color;
 	graphic_data.start_angle = 0;
 	graphic_data.end_angle = 0;
-	graphic_data.width = graph_FrontSize_default;
-	graphic_data.start_x = 300;
-	graphic_data.start_y = 300;
+	graphic_data.width = graph_LineWidth_default +5;
+	graphic_data.start_x = start_x;
+	graphic_data.start_y = start_y;
 	graphic_data.radius = 0;
-	graphic_data.end_x = 600;
-	graphic_data.end_y = 600;
-	memcpy(referee_tx_buf +LEN_graph_TxHeader, &graphic_data, temp_data_len);
+	graphic_data.end_x = end_x;
+	graphic_data.end_y = end_y;
+	memcpy(referee_tx_buf +pointer, &graphic_data, sizeof(graphic_data));
+	pointer += sizeof(graphic_data);
 
-	Ref_Append_CRC16_Check_Sum(referee_tx_buf, temp_total_len);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, temp_total_len, 300);
+	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
+	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+}
+
+void UI_Clear_layer(uint8_t ui_layer)
+{
 	memset(referee_tx_buf, 0, referee_tx_buf_size);
+	graphic_data_struct_t graphic_data;
+	graphic_TxHeader_Typedef graphic_TxHeader;
+	uint8_t pointer = 0;
+
+	graphic_TxHeader.SOF = 0xA5;
+	graphic_TxHeader.seq = UI_Seq++;
+	graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_delete;
+	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
+	graphic_TxHeader.Cmd_id = 0x0301;
+	graphic_TxHeader.Data_id = 0x0100;       //clear graph
+	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
+	pointer += LEN_graph_TxHeader;
+
+	graphic_data.graphic_name[0] = 1;
+	graphic_data.graphic_name[1] = ui_layer;
+	memcpy(referee_tx_buf +pointer, &graphic_data, LEN_data_delete);
+	pointer += LEN_data_delete;
+
+	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
+	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+
 }
