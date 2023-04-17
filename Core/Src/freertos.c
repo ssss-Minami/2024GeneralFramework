@@ -55,12 +55,8 @@
 extern uint8_t Message[];
 float angle_yaw,angle_pitch,pitch,yaw,aim[3];
 int16_t temp_yaw, temp_pitch, temp_ammofeed;
-<<<<<<< HEAD
-uint8_t Motor_Status,Motor_Status_last,referee_Status_last;
 uint8_t UI_Char[][30] = {"Chassis: ", "Aim: ", "FOLLOW", "SPIN", "NORMAL", "Tracking", "Missing"};
-=======
 uint8_t Motor_Status,Shooter_Status_last,referee_Status_last;
->>>>>>> d008cd643ef3b78d7149338661f6b73ca4657e91
 _send_packetinfo sd;
 uint32_t temp_start_y;
 /* USER CODE END PD */
@@ -332,8 +328,6 @@ void fun_ChangeTarget(void *argument)
   /* Infinite loop */
 	for(;;)
   {
-		referee_Status_last = referee_WatchDog.status;
-		Shooter_Status_last = motor_WatchDog[7].status;
 		Motor_Status = 1;
 		Dog_Status_update(&remote_WatchDog);//遥控器看门狗状�?�更�?
 		Dog_Status_update(&referee_WatchDog);//图传看门狗状态更�?
@@ -345,6 +339,13 @@ void fun_ChangeTarget(void *argument)
 		}
 		Dog_Status_update(&motor_WatchDog[7]);
 
+		if(receinfo->tracking == 1)
+		{
+			if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2 ,receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
+			else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
+			GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
+							,&aim[0],&aim[1],&aim[2]);
+		}
 		if(!Shooter_Status_last)
 			if(motor_WatchDog[7].status)
 			{
@@ -369,12 +370,12 @@ void fun_ChangeTarget(void *argument)
 
 			Chassis_angleTransform();
 
-			if(receinfo->tracking && RC_Ctl.keyboard.r)
+			if(RC_Ctl.keyboard.r)
 			{
-				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2 ,receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
-				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
-				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
-						,&aim[0],&aim[1],&aim[2]);
+//				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2 ,receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
+//				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
+//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
+//						,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
 				Motor[Motor_Pitch_ID].target_angle = (uint16_t)(-pitch*4096/3.1415926535f + 3400);
 			}
@@ -431,12 +432,12 @@ void fun_ChangeTarget(void *argument)
 			/***云台到底盘的速度转换****/
 			Chassis_angleTransform();
 			/***自瞄***/
-			if(receinfo->tracking && RC_Ctl.rc.sw1 == 1)
+			if(RC_Ctl.rc.sw1 == 1)
 			{
-				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
-				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
-				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
-						,&aim[0],&aim[1],&aim[2]);
+//				if(Ref_Info.Shoot_Data.bullet_speed) GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, Ref_Info.Shoot_Data.bullet_speed, 0.092);
+//				else GimbalControlInit( angle_pitch, angle_yaw,receinfo->yaw, receinfo->v_yaw,receinfo->r1,receinfo->r2,receinfo->z_2, receinfo->armor_type, 17.3, 0.092);
+//				GimbalControlTransform(receinfo->x, receinfo->y, receinfo->z,receinfo->vx,receinfo->vy,receinfo->vz,1, &pitch, &yaw
+//						,&aim[0],&aim[1],&aim[2]);
 //				GimbalControlTransform(1.931, 0, 0,0,0,0,1, &pitch, &yaw
 //										,&aim[0],&aim[1],&aim[2]);
 				Motor[Motor_Yaw_ID].target_angle = yaw;
@@ -516,6 +517,8 @@ void fun_ChangeTarget(void *argument)
 		}
 		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
 			PID_Init();
+		referee_Status_last = referee_WatchDog.status;
+		Shooter_Status_last = motor_WatchDog[7].status;
 		osDelay(5);
   }
 
