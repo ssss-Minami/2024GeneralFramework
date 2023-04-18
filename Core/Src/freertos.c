@@ -269,18 +269,20 @@ void start_SendMessage(void *argument)
 void startReceiveMessage(void *argument)
 {
   /* USER CODE BEGIN startReceiveMessage */
-	uint8_t ammo_count=0, ammo_temp = 0;
+	uint8_t ammo_count=0, ammo_temp = 0, last_state = 0;
 
 	GPIO_PinState pinstate = GPIO_PIN_SET;
 	for(int i=0;i<20;i++)
 	{
-		  UI_Print_char(UI_Char[4], graph_color_orange, 960-100, 130);
+		  UI_Print_char(&chassis_char, UI_Char[4], graph_color_orange, 960-100, 130);
 		osDelay(100);
-		  UI_Print_char(UI_Char[0], graph_color_white, 960-300, 130);
+		  UI_Print_char(&const_char, UI_Char[0], graph_color_white, 960-300, 130);
 		osDelay(100);
-		  UI_Print_char(UI_Char[6], graph_color_orange, 960+300, 130);
+		  UI_Print_char(&aim_char, UI_Char[6], graph_color_orange, 960+200, 130);
 		osDelay(100);
-		  UI_Print_char(UI_Char[1], graph_color_white, 960+100, 130);
+		  UI_Print_char(&const_char, UI_Char[1], graph_color_white, 960+100, 130);
+		osDelay(100);
+		  UI_Print_rectangle(&droppoint_rectangle, graph_color_white, 5, 900, 300, 1020, 400);
 		osDelay(100);
 	}
 
@@ -298,19 +300,19 @@ void startReceiveMessage(void *argument)
 		  ammo_count++;
 		  ammo_temp = 0;
 	  }
-//	  UI_Clear_layer(5);
-//	  osDelay(100);
-	  temp_start_y = (uint32_t)-0.00064734*(Motor[Motor_Pitch_ID].angle)*(Motor[Motor_Pitch_ID].angle) + 4.19476248*(Motor[Motor_Pitch_ID].angle) - 6338.745832;   //落点与pitch角度映射
-	  UI_Print_rectangle(graph_color_white, 5, 900, temp_start_y, 1020, temp_start_y + 50);
+	  if(receinfo->tracking != last_state)
+	  {
+		  last_state = receinfo->tracking;
+		  if(receinfo->tracking == 1)
+			  UI_Refresh_char(&aim_char, UI_Char[5]);   //tracking
+		  else
+			  UI_Refresh_char(&aim_char, UI_Char[6]);   //missing
+		  osDelay(100);
+	  }
+	  temp_start_y = (-0.00064734)*(float)pow((Motor[Motor_Pitch_ID].angle), 2) + 4.19476248*(float)(Motor[Motor_Pitch_ID].angle) - 6338.745832;   //落点与pitch角度映射
+	  UI_Refresh_graph(&droppoint_rectangle, temp_start_y);
 	  osDelay(100);
-//	  UI_Print_char(UI_Char[4], graph_color_orange, 960-100, 130);
-//	osDelay(100);
-//	  UI_Print_char(UI_Char[0], graph_color_white, 960-300, 130);
-//	osDelay(100);
-//	  UI_Print_char(UI_Char[6], graph_color_orange, 960+200, 130);
-//	osDelay(100);
-//	  UI_Print_char(UI_Char[1], graph_color_white, 960+100, 130);
-//	osDelay(100);
+
   }
   /* USER CODE END startReceiveMessage */
 }

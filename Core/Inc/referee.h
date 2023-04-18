@@ -453,10 +453,14 @@ typedef enum
 
 }graph_config;
 
-
 extern Referee_InfoTypedef Ref_Info;
-extern void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y);
-extern void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y);
+extern graphic_data_struct_t const_char, aim_char, chassis_char, droppoint_rectangle;
+extern graphic_TxHeader_Typedef graphic_TxHeader;
+
+extern void UI_Print_char(graphic_data_struct_t *graphic_data, uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y);
+extern void UI_Print_rectangle(graphic_data_struct_t *graphic_data, uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y);
 extern void UI_Clear_layer(uint8_t ui_layer);
+extern void UI_Refresh_graph(graphic_data_struct_t *graphic_data, uint32_t new_y);
+extern void UI_Refresh_char(graphic_data_struct_t *graphic_data, uint8_t *new_char);
 
 #endif

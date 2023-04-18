@@ -20,7 +20,8 @@ uint8_t referee_rx_buf[referee_buf_size];           //dma接收区
 uint8_t referee_pic_rx_buf[referee_pic_buf_size];
 uint8_t referee_tx_buf[referee_tx_buf_size];                        //maximum 128 bytes
 Referee_InfoTypedef Ref_Info;             //裁判系统数据
-
+graphic_data_struct_t const_char, aim_char, chassis_char, droppoint_rectangle;
+graphic_TxHeader_Typedef graphic_TxHeader;
 uint8_t UI_Seq = 0;
 
 
@@ -156,11 +157,9 @@ void referee_solve(uint8_t *data)
 
 }
 
-void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y)
+void UI_Print_char(graphic_data_struct_t *graphic_data, uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y)
 {
 	memset(referee_tx_buf, 0, referee_tx_buf_size);
-	graphic_data_struct_t graphic_data;
-	graphic_TxHeader_Typedef graphic_TxHeader;
 	uint8_t pointer = 0;
 
 	graphic_TxHeader.SOF = 0xA5;
@@ -169,30 +168,31 @@ void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t
 	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
 	graphic_TxHeader.Cmd_id = 0x0301;
 	graphic_TxHeader.Data_id = 0x0110;       //draw single char
-
-	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
-	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
-
+	if(graphic_TxHeader.Tx_id == 0 || graphic_TxHeader.Rx_id == 0)
+		{
+			graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+			graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+		}
 	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
 	pointer += LEN_graph_TxHeader;
 
-	graphic_data.graphic_name[0] = char_to_send[0];
-	graphic_data.graphic_name[1] = char_to_send[1];
-	graphic_data.graphic_name[2] = char_to_send[2];
-	graphic_data.operate_tpye = graph_operate_add;
-	graphic_data.graphic_tpye = graph_type_char;
-	graphic_data.layer = 1;
-	graphic_data.color = ui_color;
-	graphic_data.start_angle = graph_FrontSize_default;
-	graphic_data.end_angle = 120;
-	graphic_data.width = graph_LineWidth_default;
-	graphic_data.start_x = x;
-	graphic_data.start_y = y;
-	graphic_data.radius = 0;
-	graphic_data.end_x = 0;
-	graphic_data.end_y = 0;
-	memcpy(referee_tx_buf +pointer, &graphic_data, sizeof(graphic_data));
-	pointer += sizeof(graphic_data);
+	graphic_data->graphic_name[0] = char_to_send[0];
+	graphic_data->graphic_name[1] = char_to_send[1];
+	graphic_data->graphic_name[2] = char_to_send[2];
+	graphic_data->operate_tpye = graph_operate_add;
+	graphic_data->graphic_tpye = graph_type_char;
+	graphic_data->layer = 1;
+	graphic_data->color = ui_color;
+	graphic_data->start_angle = graph_FrontSize_default;
+	graphic_data->end_angle = 120;
+	graphic_data->width = graph_LineWidth_default;
+	graphic_data->start_x = x;
+	graphic_data->start_y = y;
+	graphic_data->radius = 0;
+	graphic_data->end_x = 0;
+	graphic_data->end_y = 0;
+	memcpy(referee_tx_buf +pointer, graphic_data, sizeof(*graphic_data));
+	pointer += sizeof(*graphic_data);
 
 	memcpy(referee_tx_buf +pointer, char_to_send, LEN_data_char);
 	pointer += LEN_data_char;
@@ -202,11 +202,9 @@ void UI_Print_char(uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t
 }
 
 
-void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
+void UI_Print_rectangle(graphic_data_struct_t *graphic_data, uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
 {
 	memset(referee_tx_buf, 0, referee_tx_buf_size);
-	graphic_data_struct_t graphic_data;
-	graphic_TxHeader_Typedef graphic_TxHeader;
 	uint8_t pointer = 0;
 
 	graphic_TxHeader.SOF = 0xA5;
@@ -215,29 +213,31 @@ void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, ui
 	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
 	graphic_TxHeader.Cmd_id = 0x0301;
 	graphic_TxHeader.Data_id = 0x0101;       //draw single char
-	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
-	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
-
+	if(graphic_TxHeader.Tx_id == 0 || graphic_TxHeader.Rx_id == 0)
+		{
+			graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+			graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+		}
 	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
 	pointer += LEN_graph_TxHeader;
 
-	graphic_data.graphic_name[0] = 1;
-	graphic_data.graphic_name[1] = 1;
-	graphic_data.graphic_name[2] = 0;
-	graphic_data.operate_tpye = graph_operate_add;
-	graphic_data.graphic_tpye = graph_type_rectangle;
-	graphic_data.layer = ui_layer;
-	graphic_data.color = ui_color;
-	graphic_data.start_angle = 0;
-	graphic_data.end_angle = 0;
-	graphic_data.width = graph_LineWidth_default +5;
-	graphic_data.start_x = start_x;
-	graphic_data.start_y = start_y;
-	graphic_data.radius = 0;
-	graphic_data.end_x = end_x;
-	graphic_data.end_y = end_y;
-	memcpy(referee_tx_buf +pointer, &graphic_data, sizeof(graphic_data));
-	pointer += sizeof(graphic_data);
+	graphic_data->graphic_name[0] = 1;
+	graphic_data->graphic_name[1] = 1;
+	graphic_data->graphic_name[2] = 0;
+	graphic_data->operate_tpye = graph_operate_add;
+	graphic_data->graphic_tpye = graph_type_rectangle;
+	graphic_data->layer = ui_layer;
+	graphic_data->color = ui_color;
+	graphic_data->start_angle = 0;
+	graphic_data->end_angle = 0;
+	graphic_data->width = graph_LineWidth_default;
+	graphic_data->start_x = start_x;
+	graphic_data->start_y = start_y;
+	graphic_data->radius = 0;
+	graphic_data->end_x = end_x;
+	graphic_data->end_y = end_y;
+	memcpy(referee_tx_buf +pointer, graphic_data, sizeof(*graphic_data));
+	pointer += sizeof(*graphic_data);
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
 	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
@@ -246,8 +246,7 @@ void UI_Print_rectangle(uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, ui
 void UI_Clear_layer(uint8_t ui_layer)
 {
 	memset(referee_tx_buf, 0, referee_tx_buf_size);
-	graphic_data_struct_t graphic_data;
-	graphic_TxHeader_Typedef graphic_TxHeader;
+	uint8_t temp_arr[2];
 	uint8_t pointer = 0;
 
 	graphic_TxHeader.SOF = 0xA5;
@@ -256,17 +255,75 @@ void UI_Clear_layer(uint8_t ui_layer)
 	Append_CRC8_Check_Sum(&graphic_TxHeader, 5);
 	graphic_TxHeader.Cmd_id = 0x0301;
 	graphic_TxHeader.Data_id = 0x0100;       //clear graph
-	graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
-	graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+	if(graphic_TxHeader.Tx_id == 0 || graphic_TxHeader.Rx_id == 0)
+		{
+			graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+			graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+		}
 	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
 	pointer += LEN_graph_TxHeader;
 
-	graphic_data.graphic_name[0] = 1;
-	graphic_data.graphic_name[1] = ui_layer;
-	memcpy(referee_tx_buf +pointer, &graphic_data, LEN_data_delete);
+	temp_arr[0] = 1;
+	temp_arr[1] = ui_layer;
+	memcpy(referee_tx_buf +pointer, temp_arr, LEN_data_delete);
 	pointer += LEN_data_delete;
+
+	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
+	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+}
+
+void UI_Refresh_graph(graphic_data_struct_t *graphic_data, uint32_t new_y)
+{
+	memset(referee_tx_buf, 0, referee_tx_buf_size);
+	uint8_t pointer = 0;
+	graphic_TxHeader.seq = UI_Seq++;
+	graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1;
+	if(graphic_TxHeader.Tx_id == 0 || graphic_TxHeader.Rx_id == 0)
+	{
+		graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+		graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+	}
+	Append_CRC8_Check_Sum(&graphic_TxHeader, LEN_FRAME_HEAD);
+	graphic_TxHeader.Data_id = 0x101;     //print single graph
+	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
+	pointer += LEN_graph_TxHeader;
+
+	graphic_data->operate_tpye = graph_operate_change;
+	graphic_data->start_y = new_y -20;
+	graphic_data->end_y = new_y +30;
+	memcpy(referee_tx_buf +pointer, graphic_data, sizeof(*graphic_data));
+	pointer += sizeof(*graphic_data);
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
 	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 
 }
+
+void UI_Refresh_char(graphic_data_struct_t *graphic_data, uint8_t *new_char)
+{
+	memset(referee_tx_buf, 0, referee_tx_buf_size);
+	uint8_t pointer = 0;
+	graphic_TxHeader.seq = UI_Seq++;
+	graphic_TxHeader.data_length = LEN_graph_ID + LEN_data_draw1 + LEN_data_char;
+	if(graphic_TxHeader.Tx_id == 0 || graphic_TxHeader.Rx_id == 0)
+	{
+		graphic_TxHeader.Tx_id = Ref_Info.Game_Robot_state.robot_id;
+		graphic_TxHeader.Rx_id = Ref_Info.Game_Robot_state.robot_id + 0x100;  //receive_end client id
+	}
+	Append_CRC8_Check_Sum(&graphic_TxHeader, LEN_FRAME_HEAD);
+	graphic_TxHeader.Data_id = 0x110;    //print char
+	memcpy(referee_tx_buf + pointer, &graphic_TxHeader, LEN_graph_TxHeader);
+	pointer += LEN_graph_TxHeader;
+
+	graphic_data->operate_tpye = graph_operate_change;
+	memcpy(referee_tx_buf +pointer, graphic_data, sizeof(*graphic_data));
+	pointer += sizeof(*graphic_data);
+
+	memcpy(referee_tx_buf +pointer, new_char, LEN_data_char);
+	pointer += LEN_data_char;
+
+	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
+	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+
+}
+
