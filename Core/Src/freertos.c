@@ -356,11 +356,11 @@ void fun_ChangeTarget(void *argument)
 			}
 		if(referee_WatchDog.status)
 		{
-			if(!referee_Status_last)
-			{
-				SPEED_INIT(1);
-				SPEED_SET(1000);
-			}
+//			if(!referee_Status_last)
+//			{
+//				SPEED_INIT(1);
+//				SPEED_SET(1000);
+//			}
 			/**********************键鼠控制******************************/
 			speed_x_commend = 1.6*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
 			speed_y_commend = 1.6*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
@@ -411,8 +411,8 @@ void fun_ChangeTarget(void *argument)
 
 			if(fabs(omega) > 3)
 			{
-				PID_Motor_Angle[6].Ki = 0.25;
-				PID_Motor_Angle[6].Err_sum_Max = 250;
+				PID_Motor_Angle[6].Ki = 0.2;
+				PID_Motor_Angle[6].Err_sum_Max = 300;
 			}
 			else if(fabs(omega) >1)
 			{
@@ -422,7 +422,7 @@ void fun_ChangeTarget(void *argument)
 			else
 			{
 				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
+				PID_Motor_Angle[6].Err_sum_Max = 0;
 			}
 		}
 		else if(remote_WatchDog.status)
@@ -481,8 +481,8 @@ void fun_ChangeTarget(void *argument)
 
 			if(fabs(omega) > 3)
 			{
-				PID_Motor_Angle[6].Ki = 0.25;
-				PID_Motor_Angle[6].Err_sum_Max = 250;
+				PID_Motor_Angle[6].Ki = 0.2;
+				PID_Motor_Angle[6].Err_sum_Max = 300;
 			}
 			else if(fabs(omega) >1)
 			{
@@ -492,7 +492,7 @@ void fun_ChangeTarget(void *argument)
 			else
 			{
 				PID_Motor_Angle[6].Ki = 0;
-				PID_Motor_Angle[6].Err_sum_Max = 100;
+				PID_Motor_Angle[6].Err_sum_Max = 0;
 			}
 		}
 		/**掉线保护***/
