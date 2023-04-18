@@ -354,11 +354,11 @@ void fun_ChangeTarget(void *argument)
 			}
 		if(referee_WatchDog.status)
 		{
-			if(!referee_Status_last)
-			{
-				SPEED_INIT(1);
-				SPEED_SET(1000);
-			}
+//			if(!referee_Status_last)
+//			{
+//				SPEED_INIT(1);
+//				SPEED_SET(1000);
+//			}
 			/**********************键鼠控制******************************/
 			speed_x_commend = 1.6*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
 			speed_y_commend = 1.6*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
