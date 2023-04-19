@@ -290,15 +290,33 @@ void startReceiveMessage(void *argument)
   for(;;)
   {
 	  /***�??测已发弹�??***/
-	  if(HAL_GPIO_ReadPin(Ammo_Counter_GPIO_Port, Ammo_Counter_Pin) != pinstate)
+//	  if(HAL_GPIO_ReadPin(Ammo_Counter_GPIO_Port, Ammo_Counter_Pin) != pinstate)
+//	  {
+//		  pinstate = !pinstate;
+//		  ammo_temp++;
+//	  }
+//	  if(ammo_temp >=2)
+//	  {
+//		  ammo_count++;
+//		  ammo_temp = 0;
+//	  }
+	  if(RC_Ctl.keyboard.B)    //UI restart
 	  {
-		  pinstate = !pinstate;
-		  ammo_temp++;
-	  }
-	  if(ammo_temp >=2)
-	  {
-		  ammo_count++;
-		  ammo_temp = 0;
+		  UI_Clear_layer(1);
+		  UI_Clear_layer(5);
+		  for(int i=0;i<10;i++)
+		  {
+			  UI_Print_char(&chassis_char, UI_Char[4], graph_color_orange, 960-100, 130);
+			  osDelay(100);
+			  UI_Print_char(&const_char, UI_Char[0], graph_color_white, 960-300, 130);
+			  osDelay(100);
+			  UI_Print_char(&aim_char, UI_Char[6], graph_color_orange, 960+200, 130);
+			  osDelay(100);
+			  UI_Print_char(&const_char, UI_Char[1], graph_color_white, 960+100, 130);
+			  osDelay(100);
+			  UI_Print_rectangle(&droppoint_rectangle, graph_color_white, 5, 900, 300, 1020, 400);
+			  osDelay(100);
+		  }
 	  }
 	  if(receinfo->tracking != last_state)
 	  {
