@@ -156,17 +156,30 @@ void GimbalControlTransform(float xw, float yw, float zw,
 	//		}
 	//	}
 	//
+
 		//计算枪管到目标装甲板yaw小的那个装甲板
-			float yaw_diff_min = fabsf(*yaw - tar_position[0].yaw);
-			for (i = 1; i<4; i++)
-			{
-				float temp_yaw_diff = fabsf(*yaw - tar_position[i].yaw);
-				if (temp_yaw_diff < yaw_diff_min)
-				{
-					yaw_diff_min = temp_yaw_diff;
-					index = i;
-				}
-			}
+//		float yaw_diff_min = fabsf(*yaw - tar_position[0].yaw);
+//		for (i = 1; i<4; i++)
+//		{
+//			float temp_yaw_diff = fabsf(*yaw - tar_position[i].yaw);
+//			if (temp_yaw_diff < yaw_diff_min)
+//			{
+//				yaw_diff_min = temp_yaw_diff;
+//				index = i;
+//			}
+//		}
+		int dir_spin = st.v_yaw ? st.v_yaw / st.v_yaw : 1;;
+		float lim_dir = dir_spin * st.v_yaw / 25;
+		float alpha = PI/2 - atan2(xw, yw);
+		float tmp_ang = st.tar_yaw - alpha;
+		if (tmp_ang < (-PI/4 + lim_dir )) {
+			index = 3;
+		} else if (tmp_ang > (PI/4 + lim_dir)) {
+			index = 1;
+		} else {
+			index = 0;
+		}
+
 
 
 
