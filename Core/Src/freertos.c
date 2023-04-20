@@ -269,9 +269,9 @@ void start_SendMessage(void *argument)
 void startReceiveMessage(void *argument)
 {
   /* USER CODE BEGIN startReceiveMessage */
-	uint8_t ammo_count=0, ammo_temp = 0, last_state = 0;
+	uint8_t last_state = 0;
 
-	GPIO_PinState pinstate = GPIO_PIN_SET;
+//	GPIO_PinState pinstate = GPIO_PIN_SET;
 	for(int i=0;i<20;i++)
 	{
 		  UI_Print_char(&chassis_char, UI_Char[4], graph_color_orange, 960-100, 130);
@@ -304,6 +304,8 @@ void startReceiveMessage(void *argument)
 	  {
 		  UI_Clear_layer(1);
 		  UI_Clear_layer(5);
+		  SPEED_INIT(1);
+		  SPEED_SET(1000);
 		  for(int i=0;i<10;i++)
 		  {
 			  UI_Print_char(&chassis_char, UI_Char[4], graph_color_orange, 960-100, 130);
@@ -374,11 +376,7 @@ void fun_ChangeTarget(void *argument)
 			}
 		if(referee_WatchDog.status)
 		{
-			if(!referee_Status_last)
-			{
-				SPEED_INIT(1);
-				SPEED_SET(1000);
-			}
+
 			/**********************键鼠控制******************************/
 			speed_x_commend = 1.6*(RC_Ctl.keyboard.W - RC_Ctl.keyboard.S);
 			speed_y_commend = 1.6*(RC_Ctl.keyboard.D - RC_Ctl.keyboard.A);
@@ -528,6 +526,7 @@ void fun_ChangeTarget(void *argument)
 			Chassis_ctrl[1] = 0;
 			Chassis_ctrl[2] = 0;
 			Chassis_ctrl[3] = 0;
+			Motor[6].target_angle = imu_data.angle[0];
 		}
 		else if(!motor_WatchDog[7].status)
 		{
