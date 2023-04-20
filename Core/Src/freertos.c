@@ -528,14 +528,23 @@ void fun_ChangeTarget(void *argument)
 			Chassis_ctrl[3] = 0;
 			Motor[6].target_angle = imu_data.angle[0];
 		}
-		else if(!motor_WatchDog[7].status)
+		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
+			PID_Init();
+		if(!motor_WatchDog[7].status)
 		{
 			PID_Clear(&PID_Motor_Angle[7]);
 			PID_Clear(&PID_Motor_Speed[7]);
 			temp_ammofeed = 0;
 		}
-		else if(PID_Motor_Speed[1].Kp == 0)//有至少一个控制器在线时重新初始化
-			PID_Init();
+		else if(PID_Motor_Speed[7].Kp == 0)//有至少一个控制器在线时重新初始化
+		{
+			PID_Motor_Speed[7].Kp = PID_SpeedCtrl_Config[7][0];
+			PID_Motor_Speed[7].Ki = PID_SpeedCtrl_Config[7][1];
+			PID_Motor_Speed[7].Kd = PID_SpeedCtrl_Config[7][2];
+			PID_Motor_Speed[7].Output_Max = PID_SpeedCtrl_Config[7][3];
+			PID_Motor_Speed[7].Err_sum_Max = PID_SpeedCtrl_Config[7][4];
+			PID_Motor_Speed[7].PID_Type = Speed;
+		}
 		referee_Status_last = referee_WatchDog.status;
 		Shooter_Status_last = motor_WatchDog[7].status;
 		osDelay(5);
