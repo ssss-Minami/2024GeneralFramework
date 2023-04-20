@@ -170,21 +170,12 @@ void GimbalControlTransform(float xw, float yw, float zw,
 //		}
 //		int dir_spin = st.v_yaw ? st.v_yaw / st.v_yaw : 1;
 //		float lim_dir = dir_spin * st.v_yaw / 25;
-		float lim_dir = 0;
+//		float lim_dir = 0;
 		float alpha = PI/2 - atan2(xw, yw);
 		float tmp_ang = st.tar_yaw - alpha;
-		if (tmp_ang < (-PI/4 + lim_dir )) {
-			index = 3;
-		} else if (tmp_ang > (PI/4 + lim_dir)) {
-			index = 1;
-		} else {
-			index = 0;
-		}
-
-
-
-
-
+		tmp_ang = tmp_ang < 0 ? tmp_ang + 2 * PI : tmp_ang;
+		int mod = tmp_ang / (PI / 2);
+		index = mod;
 	}
 
 

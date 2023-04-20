@@ -372,7 +372,7 @@ void fun_ChangeTarget(void *argument)
 			if(motor_WatchDog[7].status)
 			{
 				SPEED_INIT(1);
-				SPEED_SET(1000);
+				SPEED_SET(1295);
 			}
 		if(referee_WatchDog.status)
 		{
@@ -494,7 +494,14 @@ void fun_ChangeTarget(void *argument)
 				omega = 0;//底盘不跟�??
 			}
 
-
+			if(RC_Ctl.rc.sw1 == 2)
+			{
+				SPEED_SET(1);
+				Motor[Motor_AmmoFeed_ID].target_speed = 0;
+			}
+			else{
+				SPEED_SET(1295);
+			}
 			if(fabs(omega) > 3)
 			{
 				PID_Motor_Angle[6].Ki = 0.2;

@@ -252,8 +252,8 @@ void SPEED_INIT(int speed){
 	  HAL_Delay(1650);
 }
 void SPEED_SET(int speed){
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1295);
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,1295);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,speed);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,speed);
 	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,1800);
 }
 /* USER CODE END 4 */
