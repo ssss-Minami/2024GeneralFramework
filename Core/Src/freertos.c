@@ -372,8 +372,8 @@ void fun_ChangeTarget(void *argument)
 			if(motor_WatchDog[7].status)
 			{
 				SPEED_INIT(1);
-//				SPEED_SET(1295);
-				SPEED_SET(1);
+				SPEED_SET(1295);
+//				SPEED_SET(1);
 			}
 		if(referee_WatchDog.status)
 		{
@@ -409,7 +409,7 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle < 2900) Motor[Motor_Pitch_ID].target_angle = 2900;
 
 			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 230)
-				Motor[Motor_AmmoFeed_ID].target_speed = 2000*(RC_Ctl.keyboard.l);
+				Motor[Motor_AmmoFeed_ID].target_speed = 2200*(RC_Ctl.keyboard.l);
 			else Motor[Motor_AmmoFeed_ID].target_speed = 0;
 
 			if(RC_Ctl.keyboard.SHIFT)
@@ -476,7 +476,7 @@ void fun_ChangeTarget(void *argument)
 			/*****拨弹轮控制输�??******/
 			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 230)
 			{
-				Motor[Motor_AmmoFeed_ID].target_speed = 2000;
+				Motor[Motor_AmmoFeed_ID].target_speed = 2200;
 			}
 			else
 			{
