@@ -85,6 +85,7 @@ void SPEED_SET(int speed);
 #define Motor_AmmoFeed_ID 7            //拨弹电机
 #define Chassis_Angle_ID 0
 
+#define AmmoBooster_Speed 2200
 #define IST8310_I2C_ADDR 0x0E
 
 #define  RC_FRAME_LENGTH 18

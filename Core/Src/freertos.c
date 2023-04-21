@@ -344,6 +344,7 @@ void startReceiveMessage(void *argument)
 * @retval None
 */
 /* USER CODE END Header_fun_ChangeTarget */
+
 void fun_ChangeTarget(void *argument)
 {
   /* USER CODE BEGIN fun_ChangeTarget */
@@ -408,8 +409,8 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle > 3700) Motor[Motor_Pitch_ID].target_angle = 3700;
 			if(Motor[Motor_Pitch_ID].target_angle < 2900) Motor[Motor_Pitch_ID].target_angle = 2900;
 
-			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 230)
-				Motor[Motor_AmmoFeed_ID].target_speed = 2000*(RC_Ctl.keyboard.l);
+			if(Ref_Info.Power_Heat_Data.shooter_heat0 <= 260)
+				Motor[Motor_AmmoFeed_ID].target_speed = 2600*(RC_Ctl.keyboard.l);
 			else Motor[Motor_AmmoFeed_ID].target_speed = 0;
 
 			if(RC_Ctl.keyboard.SHIFT)
@@ -474,9 +475,9 @@ void fun_ChangeTarget(void *argument)
 			if(Motor[Motor_Pitch_ID].target_angle < 2900)
 				Motor[Motor_Pitch_ID].target_angle = 2900;
 			/*****拨弹轮控制输�??******/
-			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 230)
+			if((RC_Ctl.rc.wheel) && Ref_Info.Power_Heat_Data.shooter_heat0 <= 260)
 			{
-				Motor[Motor_AmmoFeed_ID].target_speed = 2000;
+				Motor[Motor_AmmoFeed_ID].target_speed = 2600;
 			}
 			else
 			{
@@ -502,6 +503,7 @@ void fun_ChangeTarget(void *argument)
 			}
 			else{
 				SPEED_SET(1295);
+//				SPEED_SET(1);
 			}
 			if(fabs(omega) > 3)
 			{

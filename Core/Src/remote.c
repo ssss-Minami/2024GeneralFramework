@@ -37,6 +37,7 @@ void Remote_restart()//重启串口和DMA，针对于数据错位和无法进入
     memset(&RC_Ctl, 0, sizeof(RC_Ctl));
     HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);
 }
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART3)
@@ -79,6 +80,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	        Remote_restart();
 	        return ;
 	    }
+//dev
+//	    memcpy(&RC_Ctl.keyboard, RC_buff +6, 8);
+//	    RC_Ctl.keyboard.W = RC_buff[14] & 0x80;
+//	    RC_Ctl.keyboard.S = RC_buff[14] & 0x40;
+//	    RC_Ctl.keyboard.A = RC_buff[14] & 0x20;
+//	    RC_Ctl.keyboard.D = RC_buff[14] & 0x10;
+//	    RC_Ctl.keyboard.Q = RC_buff[14] & 0x08;
+//	    RC_Ctl.keyboard.E = RC_buff[14] & 0x04;
+//	    RC_Ctl.keyboard.SHIFT = RC_buff[14] & 0x02;
+//	    RC_Ctl.keyboard.CTRL = RC_buff[14] & 0x01;
+
 	    RC_Ctl.rc.wheel = (RC_buff[16] | RC_buff[17] << 8) - 1024;
 	    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化DMA
 	    __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
