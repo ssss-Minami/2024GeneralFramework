@@ -305,7 +305,7 @@ void startReceiveMessage(void *argument)
 		  UI_Clear_layer(1);
 		  UI_Clear_layer(5);
 		  SPEED_INIT(1);
-		  SPEED_SET(1000);
+		  SPEED_SET(1295);
 		  for(int i=0;i<10;i++)
 		  {
 			  UI_Print_char(&chassis_char, UI_Char[4], graph_color_orange, 960-100, 130);
@@ -372,7 +372,8 @@ void fun_ChangeTarget(void *argument)
 			if(motor_WatchDog[7].status)
 			{
 				SPEED_INIT(1);
-				SPEED_SET(1295);
+//				SPEED_SET(1295);
+				SPEED_SET(1);
 			}
 		if(referee_WatchDog.status)
 		{
