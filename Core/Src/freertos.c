@@ -373,8 +373,8 @@ void fun_ChangeTarget(void *argument)
 			if(motor_WatchDog[7].status)
 			{
 				SPEED_INIT(1);
-//				SPEED_SET(1295);
-				SPEED_SET(1);
+				SPEED_SET(1295);
+//				SPEED_SET(1);
 			}
 		if(referee_WatchDog.status)
 		{
