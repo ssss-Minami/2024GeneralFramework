@@ -503,6 +503,7 @@ void fun_ChangeTarget(void *argument)
 			}
 			else{
 				SPEED_SET(1295);
+
 //				SPEED_SET(1);
 			}
 			if(fabs(omega) > 3)
@@ -522,7 +523,8 @@ void fun_ChangeTarget(void *argument)
 			}
 		}
 		/**掉线保护***/
-		if((!remote_WatchDog.status && !referee_WatchDog.status) || !Motor_Status)//遥控器和图传均掉线时pid超参数与输出全部�?0
+//		if((!remote_WatchDog.status && !referee_WatchDog.status) || !Motor_Status)//遥控器和图传均掉线时pid超参数与输出全部�?0
+		if((!remote_WatchDog.status && !referee_WatchDog.status) )
 		{
 			for(int i=0;i<8;i++)
 			{
