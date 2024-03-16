@@ -46,7 +46,6 @@
 /* USER CODE BEGIN PD */
 uint8_t Message[] = "noob\n";
 extern uint8_t RC_buff[18];
-uint32_t count=0;
 //uint8_t RC_buff[18];
 
 /* USER CODE END PD */
