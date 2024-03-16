@@ -121,11 +121,11 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
   * @{
   */
 
-int8_t CDC_Init_FS(void);
-int8_t CDC_DeInit_FS(void);
-int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-int8_t CDC_Receive_FS(uint8_t* Buf, uint16_t *Len);
-int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
+static int8_t CDC_Init_FS(void);
+static int8_t CDC_DeInit_FS(void);
+static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
+static int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
 
@@ -149,7 +149,7 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
   * @brief  Initializes the CDC media low layer over the FS USB IP
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t CDC_Init_FS(void)
+static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
   /* Set Application Buffers */
@@ -163,7 +163,7 @@ int8_t CDC_Init_FS(void)
   * @brief  DeInitializes the CDC media low layer
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t CDC_DeInit_FS(void)
+static int8_t CDC_DeInit_FS(void)
 {
   /* USER CODE BEGIN 4 */
   return (USBD_OK);
@@ -177,7 +177,7 @@ int8_t CDC_DeInit_FS(void)
   * @param  length: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
+static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 {
   /* USER CODE BEGIN 5 */
   switch(cmd)
@@ -258,26 +258,15 @@ int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-int flag = 0;
-
-int8_t CDC_Receive_FS(uint8_t* Buf, uint16_t *Len)
+static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
-	if(Buf[0]=='S')
-	{
-		flag = 1;
-		CDC_Transmit_FS(UserTxBufferFS, APP_TX_DATA_SIZE);
-	}
-	if(Buf[0]=='E')
-	{
-		flag = 0;
-	}
-
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */
 }
+
 /**
   * @brief  CDC_Transmit_FS
   *         Data to send over USB IN endpoint are sent over CDC interface
@@ -289,7 +278,7 @@ int8_t CDC_Receive_FS(uint8_t* Buf, uint16_t *Len)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval USBD_OK if all operations are OK else USBD_FAIL or USBD_BUSY
   */
-int8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
+uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */
@@ -315,11 +304,12 @@ int8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 13 */
-  if(flag)
+//  if(flag)
+  if(1)
   {
 	  CDC_Transmit_FS(UserTxBufferFS, APP_TX_DATA_SIZE);
   }
@@ -330,6 +320,7 @@ int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   /* USER CODE END 13 */
   return result;
 }
+
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

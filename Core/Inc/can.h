@@ -35,10 +35,6 @@ extern "C" {
 extern CAN_HandleTypeDef hcan1;
 
 /* USER CODE BEGIN Private defines */
-extern CAN_TxHeaderTypeDef Can_cmdHeader[8];            //为方便使用，[0]空出
-extern CAN_RxHeaderTypeDef Can_recHeader[8], sCan_RxHeader;
-extern uint8_t Can_RxData[8];
-extern uint8_t Can_TxData[8];
 
 /* USER CODE END Private defines */
 

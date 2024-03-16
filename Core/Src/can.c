@@ -21,13 +21,7 @@
 #include "can.h"
 
 /* USER CODE BEGIN 0 */
-#include "pid.h"
-#include "main.h"
-#include "WatchDog.h"
-uint8_t Can_RxData[8];
-uint8_t Can_TxData[8];
-CAN_TxHeaderTypeDef Can_cmdHeader[8];            //为方便使用，[0]空出
-CAN_RxHeaderTypeDef Can_recHeader[8], sCan_RxHeader;
+
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -50,7 +44,7 @@ void MX_CAN1_Init(void)
   hcan1.Init.TimeSeg1 = CAN_BS1_4TQ;
   hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoBusOff = ENABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
   hcan1.Init.AutoRetransmission = DISABLE;
   hcan1.Init.ReceiveFifoLocked = DISABLE;
@@ -133,116 +127,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void Can_MessageConfig(void)
-{
-	for(int i=0; i<8; i++)           //无特殊情况批量设�????
-	{
-		Can_cmdHeader[i].ExtId =   0x0;
-		Can_cmdHeader[i].IDE = CAN_ID_STD;
-		Can_cmdHeader[i].RTR = CAN_RTR_DATA;
-		Can_cmdHeader[i].DLC = 8;
-		Can_recHeader[i].ExtId = 0x0;
-		Can_recHeader[i].IDE = CAN_ID_STD;
-		Can_recHeader[i].RTR = CAN_RTR_DATA;
-		Can_recHeader[i].DLC = 8;
-	}
-	Can_cmdHeader[Motor_LeftFront_ID].StdId = 0x200;
-	Can_recHeader[Motor_LeftFront_ID].StdId = 0x201;
-
-	Can_cmdHeader[Motor_LeftRear_ID].StdId = 0x200;
-	Can_recHeader[Motor_LeftRear_ID].StdId = 0x202;
-
-	Can_cmdHeader[Motor_RightRear_ID].StdId = 0x200;
-	Can_recHeader[Motor_RightRear_ID].StdId = 0x203;
-
-	Can_cmdHeader[Motor_RightFront_ID].StdId = 0x200;
-	Can_recHeader[Motor_RightFront_ID].StdId = 0x204;
-
-	Can_cmdHeader[Motor_Pitch_ID].StdId = 0x1FF;
-    Can_recHeader[Motor_Pitch_ID].StdId = 0x205;           //pitch id=1
-
-	Can_cmdHeader[Motor_Yaw_ID].StdId = 0x1FF;
-    Can_recHeader[Motor_Yaw_ID].StdId = 0x206;             //yaw id=2
-
-	Can_cmdHeader[Motor_AmmoFeed_ID].StdId = 0x1FF;
-    Can_recHeader[Motor_AmmoFeed_ID].StdId = 0x207;               //c610 id =7
 
 
 
-}
-void Can_Filter1Config(void)
-{
-	CAN_FilterTypeDef Filter_1;
-	Filter_1.FilterActivation = ENABLE;
-	Filter_1.FilterMode = CAN_FILTERMODE_IDMASK;
-	Filter_1.FilterScale = CAN_FILTERSCALE_16BIT;
-	Filter_1.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	Filter_1.FilterIdHigh = 0x0000;
-	Filter_1.FilterIdLow = 0x0000;
-	Filter_1.FilterMaskIdHigh = 0x0000;
-	Filter_1.FilterMaskIdLow = 0x0000;                      //全部接收
-	Filter_1.FilterBank = 0;
-	HAL_CAN_ConfigFilter(&hcan1, &Filter_1);
-}
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-	if(hcan->Instance == CAN1)
-	{
-		HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &sCan_RxHeader, Can_RxData);
-		switch(sCan_RxHeader.StdId)
-		{
-		case 0x201:
-			Motor[1].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[1].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[1].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[1].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[1]);
-		break;
-		case 0x202:
-			Motor[2].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[2].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[2].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[2].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[2]);
-		break;
-		case 0x203:
-			Motor[3].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[3].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[3].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[3].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[3]);
-		break;
-		case 0x204:
-			Motor[4].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[4].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[4].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[4].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[4]);
-		break;
-		case 0x205:
-			Motor[Motor_Pitch_ID].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[Motor_Pitch_ID].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[Motor_Pitch_ID].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[Motor_Pitch_ID].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[5]);
-		break;
-
-		case 0x206:
-			Motor[Motor_Yaw_ID].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-			Motor[Motor_Yaw_ID].angle = ((Can_RxData[0]<<8) + Can_RxData[1]);
-			Motor[Motor_Yaw_ID].current = (uint16_t)(Can_RxData[4]<<8) + Can_RxData[5];
-			Motor[Motor_Yaw_ID].temp = Can_RxData[6];
-			feedDog(&motor_WatchDog[6]);
-
-		break;
-
-		case 0x207:
-		     Motor[Motor_AmmoFeed_ID].speed = (uint16_t)(Can_RxData[2]<<8) + Can_RxData[3];
-		     feedDog(&motor_WatchDog[7]);
-		break;
-		}
-
-
-	}
-}
 /* USER CODE END 1 */

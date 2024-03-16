@@ -64,8 +64,6 @@ typedef struct
 extern RC_Ctl_t RC_Ctl;
 extern void Remote_unable(void);
 extern void Remote_restart();
-extern void remote_control_init(void);
+extern void RemoteInit(void);
 extern uint8_t 	Remote_data_is_error(void);
-extern void Slove_Remote_lost(void);
-extern void Slove_data_error(void);
 #endif

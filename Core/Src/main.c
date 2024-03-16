@@ -27,15 +27,14 @@
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
-#include "Serial.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "pid.h"
 #include "kalman.h"
-#include "IMU.h"
+#include "../Core/Instance/IMU/imu.h"
 #include "SolveTrajectory.h"
 #include "referee.h"
+#include "remote.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +46,7 @@
 /* USER CODE BEGIN PD */
 uint8_t Message[] = "noob\n";
 extern uint8_t RC_buff[18];
+uint32_t count=0;
 //uint8_t RC_buff[18];
 
 /* USER CODE END PD */
@@ -72,7 +72,11 @@ void Can_MessageConfig(void);
 void Can_Filter1Config(void);
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
-
+extern void ControlInit();
+extern void CanInit(void);
+extern void MotorInit(void);
+extern void GimbalInit(void);
+extern void CANBusInit(void);
 
 /* USER CODE END PFP */
 
@@ -123,38 +127,33 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  Can_MessageConfig();
-  Can_Filter1Config();
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_Start(&hcan1);
-  PID_Clear(&PID_Motor_Speed[0]);
-  PID_Clear(&PID_Motor_Angle[0]);
-  PID_Init();
   KalmanFilter_Init(&Klm_Motor[0]);
+  MotorInit();
+  CanInit();
+  IMUInit();
+//  IST8310Init();
+  imu_list[0]->angle_q[0] = 1;
+//  for(int i=0;i<3;i++){
+//	  IMUfilterInit(imu_fliter + i);
+//  }
 
-  PWM_INIT();
-  BMI088_init();
-  IST8310_init();
-  Motor[Motor_Yaw_ID].target_angle = 0;
-  Motor[Motor_Pitch_ID].target_angle = 3300;
-  Motor[Motor_Yaw_ID].target_speed = 0;
-  imu_data.angle_q[0] = 1;
-  for(int i=0;i<3;i++){
-	  IMU_fliter_Init(imu_fliter + i);
-  }
-
-    HAL_UART_Receive_DMA(&huart3, RC_buff, RC_FRAME_LENGTH);//初始化遥控器DMA
-  __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);//IDLE 中断使能
+  RemoteInit();
 //图传、裁判系统串口DMA
       HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_rx_len);
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
       HAL_UART_Receive_DMA(&huart6, referee_rx_buf, referee_rx_len);
     __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-//  HAL_Delay(1000);
+
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  ControlInit();
+  GimbalInit();
+  CANBusInit();
   MX_FREERTOS_Init();
 
   /* Start scheduler */
@@ -244,17 +243,6 @@ void PWM_INIT(){
 	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	  HAL_TIM_Base_Start(&htim3);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-}
-void SPEED_INIT(int speed){
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,1000);
-	  HAL_Delay(1650);
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,1000);
-	  HAL_Delay(1650);
-}
-void SPEED_SET(int speed){
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,speed);
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,speed);
-	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,1800);
 }
 /* USER CODE END 4 */
 

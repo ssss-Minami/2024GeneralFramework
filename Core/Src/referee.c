@@ -14,6 +14,7 @@
 #include "remote.h"
 #include "WatchDog.h"
 #include "CRC.h"
+#include "config.h"
 uint8_t referee_rx_len;    //裁判系统串口idle中断接收数据长度
 uint8_t referee_pic_rx_len;
 uint8_t referee_rx_buf[referee_buf_size];           //dma接收区
@@ -29,20 +30,20 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	//stm32f4xx_it.c文件中相应函数已被注释
-	if(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE) == SET)  //空闲中断
+	if(__HAL_UART_GET_FLAG(&REFEREE_UART, UART_FLAG_IDLE) == SET)  //空闲中断
 	{
-	__HAL_UART_CLEAR_IDLEFLAG(&huart1);
-	HAL_UART_DMAStop(&huart1);
+	__HAL_UART_CLEAR_IDLEFLAG(&REFEREE_UART);
+	HAL_UART_DMAStop(&REFEREE_UART);
 	referee_rx_len = referee_buf_size - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 
 	referee_solve(referee_rx_buf);
     memset(referee_rx_buf, 0, referee_buf_size);
-    HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_buf_size);
-    __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+    HAL_UART_Receive_DMA(&REFEREE_UART, referee_rx_buf, referee_buf_size);
+    __HAL_UART_ENABLE_IT(&REFEREE_UART, UART_IT_IDLE);
 
 	}
   /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
+  HAL_UART_IRQHandler(&REFEREE_UART);
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
@@ -198,7 +199,7 @@ void UI_Print_char(graphic_data_struct_t *graphic_data, uint8_t *char_to_send, u
 	pointer += LEN_data_char;
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+	HAL_UART_Transmit(&REFEREE_UART, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 }
 
 
@@ -240,7 +241,7 @@ void UI_Print_rectangle(graphic_data_struct_t *graphic_data, uint8_t ui_color, u
 	pointer += sizeof(*graphic_data);
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+	HAL_UART_Transmit(&REFEREE_UART, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 }
 
 void UI_Clear_layer(uint8_t ui_layer)
@@ -269,7 +270,7 @@ void UI_Clear_layer(uint8_t ui_layer)
 	pointer += LEN_data_delete;
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+	HAL_UART_Transmit(&REFEREE_UART, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 }
 
 void UI_Refresh_graph(graphic_data_struct_t *graphic_data, uint32_t new_y)
@@ -295,7 +296,7 @@ void UI_Refresh_graph(graphic_data_struct_t *graphic_data, uint32_t new_y)
 	pointer += sizeof(*graphic_data);
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+	HAL_UART_Transmit(&REFEREE_UART, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 
 }
 
@@ -323,7 +324,7 @@ void UI_Refresh_char(graphic_data_struct_t *graphic_data, uint8_t *new_char)
 	pointer += LEN_data_char;
 
 	Ref_Append_CRC16_Check_Sum(referee_tx_buf, pointer + LEN_FRAME_TAIL);
-	HAL_UART_Transmit(&huart1, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
+	HAL_UART_Transmit(&REFEREE_UART, referee_tx_buf, pointer +LEN_FRAME_TAIL, 300);
 
 }
 

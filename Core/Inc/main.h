@@ -46,7 +46,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+extern uint8_t Message[];
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -54,8 +54,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void PWM_INIT();
-void SPEED_INIT(int speed);
-void SPEED_SET(int speed);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -75,21 +74,16 @@ void SPEED_SET(int speed);
 #define Ammo_Counter_GPIO_Port GPIOB
 #define CS1_Gyro_Pin GPIO_PIN_0
 #define CS1_Gyro_GPIO_Port GPIOB
-/* USER CODE BEGIN Private defines */
-#define Motor_LeftFront_ID 1
-#define Motor_LeftRear_ID 2
-#define Motor_RightRear_ID 3
-#define Motor_RightFront_ID 4
-#define Motor_Pitch_ID 5
-#define Motor_Yaw_ID 6
-#define Motor_AmmoFeed_ID 7            //拨弹电机
-#define Chassis_Angle_ID 0
 
-#define AmmoBooster_Speed 2200
+/* USER CODE BEGIN Private defines */
+
 #define IST8310_I2C_ADDR 0x0E
 
 #define  RC_FRAME_LENGTH 18
 #define  SBUS_RX_BUF_NUM 36
+#ifndef PI
+#define PI 3.1415926535f
+#endif
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

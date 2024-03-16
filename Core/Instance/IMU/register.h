@@ -1,5 +1,5 @@
-#ifndef _IMU_H_
-#define _IMU_H_
+#ifndef __REGISTER_H__
+#define __REGISTER_H__
 
 //BMI088寄存器地址
 #define BMI088_Chip_ID_Add 0X00
@@ -57,28 +57,4 @@
 #define IST8310_AVGCNTL_TWICE 0x09
 #define IST8310_AVGCNTL_FOURTH 0x12
 
-typedef struct
-{
-	int16_t gyro[3];//陀螺仪
-	int16_t accel[3];//加速度计
-	int16_t mag[3];//磁力计
-	float angle_q[4];
-	float angle[3];
-	uint8_t temp;
-	int sensitivity;
-
-}IMU_TypeDef;
-typedef enum
-{
-	accel = 0,
-	gyro = 1
-}accel_or_gyro;
-extern IMU_TypeDef imu_data;
-extern float imu_gyro[3],imu_accel[3],imu_mag[3];
-extern void BMI088_read_Gyro(IMU_TypeDef *imu);
-extern void BMI088_read_Accel(IMU_TypeDef *imu);
-extern void BMI088_init();
-extern void IST8310_init();
-extern void IST8310_read(IMU_TypeDef *imu);
-extern void IST8310_write_byte(uint8_t write_data, uint8_t addr);
 #endif

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "stm32f4xx_hal_dma.h"
 #include "dma.h"
+#include "config.h"
 RC_Ctl_t RC_Ctl;
 uint8_t RC_buff[36]={0},count_remote_skip;
 #define Remote_CHANNAL_ERROR_VALUE 700
@@ -136,12 +137,10 @@ error:
     return 1;
 }
 
-void Slove_Remote_lost(void)
+void RemoteInit(void)
 {
-    Remote_restart();
-}
-void Slove_data_error(void)
-{
-    Remote_restart();
+	//TODO:改成receiveToIdle()的形式
+	HAL_UART_Receive_DMA(&REMOTE_UART, RC_buff, RC_FRAME_LENGTH);//初始化遥控器DMA
+ 	__HAL_UART_ENABLE_IT(&REMOTE_UART, UART_IT_IDLE);//IDLE 中断使能
 }
 
