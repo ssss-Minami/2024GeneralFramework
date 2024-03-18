@@ -26,7 +26,8 @@
         "cmsis_os2.h": "c",
         "motor.h": "c",
         "malloc.h": "c",
-        "chassis.h": "c"
+        "chassis.h": "c",
+        "imu.h": "c"
     },
     "MicroPython.executeButton": [
         {

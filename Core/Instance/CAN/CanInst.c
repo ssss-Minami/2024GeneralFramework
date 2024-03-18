@@ -2,8 +2,8 @@
 #include "config.h"
 #include "../Core/Instance/motor/motor.h"
 #include "string.h"
-Can_InfoTypedef *can_list[CANINST_NUM];
-int8_t can_index[CAN_NUM][CAN_HEADER_NUM][4];
+Can_InfoTypedef *can_list[CAN_INST_NUM];
+int8_t can_index[CAN_NUM][CAN_HEADER_NUM][9];
 CAN_TxHeaderTypeDef *can_txheader[CAN_NUM][CAN_HEADER_NUM];
 void CanSendMsg()
 {
@@ -58,6 +58,7 @@ void CanInit()
     }
     /* 手动配置帧头列表 start */
     can_txheader[0][0] = &motor_list[0]->can.txheader;
+    can_txheader[0][1] = &motor_list[2]->can.txheader;
 
     /* 手动配置帧头列表 end */
 
@@ -67,7 +68,7 @@ void CanInit()
         uint8_t count=0;
         for(int j=0;j<CAN_INST_NUM;j++)
         {
-            if(&can_list[j]->txheader == can_txheader[0][i])
+            if(can_list[j]->txheader.StdId == can_txheader[0][i]->StdId)
             {
                 uint8_t canx = can_list[j]->hcan_x==&hcan1 ? 0 : 1;  //目前仅考虑最多两个can的情况
                 can_index[canx][i][count++] = j;

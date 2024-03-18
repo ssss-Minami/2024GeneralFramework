@@ -46,14 +46,13 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-extern uint8_t Message[];
+
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void PWM_INIT();
 
 /* USER CODE END EFP */
 

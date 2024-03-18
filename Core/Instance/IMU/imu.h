@@ -34,6 +34,7 @@ typedef struct
     float bias_pitch;
     float bias_yaw;
     float bias_y;
+    uint8_t enable;
 }IMU_InfoTypeDef;
 
 typedef struct imu_s

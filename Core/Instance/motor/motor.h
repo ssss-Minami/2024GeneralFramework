@@ -6,7 +6,9 @@
 typedef enum
 {
     OTHER,
-    DJI
+    GM6020,
+	M3508,
+	M2006
 }Motor_e;
 
 typedef struct 
@@ -35,7 +37,7 @@ typedef struct _Motor_TypeDef
     float target;
     /* switching data source accroding to Motor_InfoTypeDef->type
     NOTE: don't read derectly, use MotorGetVal() instead */
-    float *value;          
+    float (*value)(struct _Motor_TypeDef *st);          
     float feed_fwd;        //feedforward when type='IMU'
     float output;
     PID_TypeDef pid[2];    //outer(or angle)(0)、inner(or speed)(1) circle
@@ -62,8 +64,8 @@ extern void MotorStatusUpdate(Motor_TypeDef *motor, PID_Type_e newtype, float *s
 extern void MotorCalc(void);
 extern void MotorInit(void);
 extern void MotorSetTar(Motor_TypeDef *motor, float tar, uint8_t style);
-extern float MotorGetVal(Motor_TypeDef *motor);
-extern uint8_t MotorGetZeroPoint(Motor_TypeDef *motor);
+extern float MotorGetVal(Motor_TypeDef *motor, uint8_t style);
+extern uint8_t MotorSetZeroPoint(Motor_TypeDef *motor);
 extern void MotorStop(Motor_TypeDef *motor);
 extern void MotorRestart(Motor_TypeDef *motor);
 

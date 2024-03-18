@@ -1,8 +1,8 @@
 #ifndef __CANINST_H__
 #define __CANINST_H__
 #include "can.h"
+#include "config.h"
 
-#define CANINST_NUM 9   //can1、2挂载实体总数
 typedef enum
 {
     MOTOR,
@@ -20,7 +20,7 @@ typedef struct can_info_s
     void (*CbkHandel)(struct can_info_s *st, uint8_t *rxdata, uint8_t list_id);
 }Can_InfoTypedef;
 
-extern Can_InfoTypedef *can_list[CANINST_NUM];
+extern Can_InfoTypedef *can_list[CAN_INST_NUM];
 
 extern void CanSendMsg(void);
 extern void CanInit(void);

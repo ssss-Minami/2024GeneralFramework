@@ -2,6 +2,8 @@
 #include "i2c.h"
 #include "spi.h"
 #include "register.h"
+#include "malloc.h"
+#include "string.h"
 IMU_TypeDef *imu_list[IMU_NUM];
 uint8_t spi_TxData, spi_RxData;
 
@@ -170,7 +172,7 @@ float IMUGetYaw(IMU_TypeDef *imu)
 
 void IMUInit()
 {
-    IMU_TypeDef static imu1;
+    IMU_TypeDef imu1;
 	imu1.spi.hspi_x = &hspi1;
 	imu1.spi.port_accel = CS1_Accel_GPIO_Port;
 	imu1.spi.pin_accel = CS1_Accel_Pin;
@@ -189,6 +191,7 @@ void IMUInit()
 	imu1.update = BMI088Update;
 
 	BMI088Init(&imu1);
-	imu_list[0] = &imu1;
+	imu_list[0] = malloc(sizeof(IMU_TypeDef));
+	memcpy(imu_list[0], &imu1, sizeof(IMU_TypeDef));
 
 }

@@ -16,6 +16,7 @@
 
 #define OUT_OF_ENUM 20
 #define NULL_POINTER 21
+#define UNEXPECTED 22
 
 
 

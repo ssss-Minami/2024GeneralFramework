@@ -44,9 +44,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint8_t Message[] = "noob\n";
-extern uint8_t RC_buff[18];
-//uint8_t RC_buff[18];
 
 /* USER CODE END PD */
 
@@ -67,7 +64,6 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
-void Can_MessageConfig(void);
 void Can_Filter1Config(void);
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
@@ -76,6 +72,7 @@ extern void CanInit(void);
 extern void MotorInit(void);
 extern void GimbalInit(void);
 extern void CANBusInit(void);
+extern void ChassisInit(void);
 
 /* USER CODE END PFP */
 
@@ -132,18 +129,16 @@ int main(void)
   MotorInit();
   CanInit();
   IMUInit();
-//  IST8310Init();
-  imu_list[0]->angle_q[0] = 1;
 //  for(int i=0;i<3;i++){
 //	  IMUfilterInit(imu_fliter + i);
 //  }
 
   RemoteInit();
 //图传、裁判系统串口DMA
-      HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_rx_len);
-    __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
-      HAL_UART_Receive_DMA(&huart6, referee_rx_buf, referee_rx_len);
-    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
+//      HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_rx_len);
+//    __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+//      HAL_UART_Receive_DMA(&huart6, referee_rx_buf, referee_rx_len);
+//    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
 
 
   /* USER CODE END 2 */
@@ -152,6 +147,7 @@ int main(void)
   osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
   ControlInit();
   GimbalInit();
+  ChassisInit();
   CANBusInit();
   MX_FREERTOS_Init();
 

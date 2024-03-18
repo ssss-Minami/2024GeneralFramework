@@ -2,11 +2,12 @@
 #include "string.h"
 #include "config.h"
 #include "cmsis_os2.h"
-#include "motor.h"
+#include "../Core/Instance/motor/motor.h"
 
 osMessageQueueId_t chassis_MQ_handel;
 osMessageQueueId_t chassis_RMQ_handel;
 osThreadId_t chassis_task_handel;
+void ChassisTask(void *arguement);
 /*
  * @brief  	全向轮解算
  * @param	底盘控制结构体指针
@@ -25,10 +26,10 @@ void OnmiSolve(Chassis_CmdTypedef *cmd, float *ret)
            4\\      //3    
                         
     */
-    ret[0] = (-2*cmd->vx + 2*cmd->vy - 1*cmd->omega_z) / WHEEL_RADIUS;
-    ret[1] = (2*cmd->vx + 2*cmd->vy - 1*cmd->omega_z) / WHEEL_RADIUS;
-    ret[2] = (2*cmd->vx - 2*cmd->vy - 1*cmd->omega_z) / WHEEL_RADIUS;
-    ret[3] = (-2*cmd->vx - 2*cmd->vy - 1*cmd->omega_z) / WHEEL_RADIUS;
+    ret[0] = (cmd->omega_z*(2*PI*CHASSIS_RADIUS)-(-ROOT_2*cmd->vx + ROOT_2*cmd->vy)) / WHEEL_RADIUS;
+    ret[1] = (cmd->omega_z*(2*PI*CHASSIS_RADIUS)-(ROOT_2*cmd->vx + ROOT_2*cmd->vy)) / WHEEL_RADIUS;
+    ret[2] = (cmd->omega_z*(2*PI*CHASSIS_RADIUS)-(ROOT_2*cmd->vx - ROOT_2*cmd->vy)) / WHEEL_RADIUS;
+    ret[3] = (cmd->omega_z*(2*PI*CHASSIS_RADIUS)-(-ROOT_2*cmd->vx - ROOT_2*cmd->vy)) / WHEEL_RADIUS;
 }
 
 /*
@@ -41,7 +42,7 @@ float ChassisGetOmega(Motor_TypeDef *motor[4])
 {
     float ret=0;
     for(int i=0;i<4;i++)
-        ret -= MotorGetVal(motor[1]);
+        ret += MotorGetVal(motor[1]);
     return ret;
 }
 
@@ -50,7 +51,7 @@ void ChassisInit(void)
     osMessageQueueAttr_t const cmd_attr = {.name = "chassis_cmd"};
     chassis_MQ_handel = osMessageQueueNew(3, sizeof(Chassis_CmdTypedef), &cmd_attr);
     osMessageQueueAttr_t const msg_attr = {.name = "chassis_msg"};
-    chassis_MQ_handel = osMessageQueueNew(3, sizeof(float), &msg_attr);
+    chassis_RMQ_handel = osMessageQueueNew(3, sizeof(float), &msg_attr);
     osThreadAttr_t task_attr = {.name = "ChassisTask"};
     chassis_task_handel = osThreadNew(ChassisTask, NULL, &task_attr);
     MotorStatusUpdate(motor_list[MOTOR_CHS_1], SPEED, NULL);
@@ -65,7 +66,7 @@ void ChassisTask(void *arguement)
     for(;;)
     {
         osMessageQueueGet(chassis_MQ_handel, &cmd, NULL, 0);
-        if(cmd.stop==0)
+        if(cmd.stop==1)
         {
             memset(solve, 0, 4*sizeof(float));
         }

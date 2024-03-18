@@ -33,7 +33,7 @@ void GimbalInit(void)
     osThreadAttr_t attr_task = {.name = "GimbalTask"};
     gimbal_task_handel = osThreadNew(GimbalTask, NULL, &attr_task);
     
-    MotorGetZeroPoint(motor_list[MOTOR_YAW]);
+    MotorSetZeroPoint(motor_list[MOTOR_YAW]);
     MotorSetTar(motor_list[MOTOR_YAW], motor_list[MOTOR_YAW]->info.zero_point, ABS);
 
 }
@@ -42,7 +42,7 @@ void GimbalTask(void *argument)
 {
 
     Gimbal_CmdTypedef gimbal_cmd; 
-    uint32_t time = osKernelSysTick();
+//    uint32_t time = osKernelSysTick();
     for(;;)
     {
         osMessageQueueGet(gimbal_MQ_handel, &gimbal_cmd, NULL, 0);   //non blocking
