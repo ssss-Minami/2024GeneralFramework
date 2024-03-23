@@ -119,12 +119,17 @@ int main(void)
   MX_I2C3_Init();
   MX_USART6_UART_Init();
   MX_TIM3_Init();
+  MX_CAN2_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_Start(&hcan1);
+#ifdef USE_CAN2
+  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_Start(&hcan2);
+#endif
   KalmanFilter_Init(&Klm_Motor[0]);
   MotorInit();
   CanInit();
@@ -140,15 +145,14 @@ int main(void)
 //      HAL_UART_Receive_DMA(&huart6, referee_rx_buf, referee_rx_len);
 //    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
 
-
+  ControlInit();
+  CANBusInit();
+  GimbalInit();
+  ChassisInit();
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
-  ControlInit();
-  GimbalInit();
-  ChassisInit();
-  CANBusInit();
   MX_FREERTOS_Init();
 
   /* Start scheduler */

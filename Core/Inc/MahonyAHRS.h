@@ -24,8 +24,8 @@ extern volatile float q0, q1, q2, q3;	// quaternion of sensor frame relative to 
 // Function declarations
 
 void MahonyAHRSupdate(float q[4], float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz);
-void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax, float ay, float az);
-
+//void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax, float ay, float az);
+void MahonyAHRSupdateIMU(float q[4], float gyro[3], float accel[3]);
 #endif
 //=====================================================================================================
 // End of file

@@ -4,6 +4,7 @@
 #include "register.h"
 #include "malloc.h"
 #include "string.h"
+#include "math.h"
 IMU_TypeDef *imu_list[IMU_NUM];
 uint8_t spi_TxData, spi_RxData;
 
@@ -137,7 +138,7 @@ void BMI088Update(IMU_TypeDef *imu)
 		 BMI088ReadAccel(imu);
 	//	 IST8310_read(&imu_data);
 		 /***量程转换***/
-         float imu_gyro[3],imu_accel[3];
+		 float static imu_gyro[3],imu_accel[3];
 		 for(int i=0;i<3;i++)
 		 {
 
@@ -149,11 +150,17 @@ void BMI088Update(IMU_TypeDef *imu)
 		 }
 		 /***减去零偏值***/
 		 imu_gyro[1] -= imu->info.bias_pitch;
-		 imu_gyro[2] -= imu->info.bias_yaw;  
+		 imu_gyro[2] -= imu->info.bias_yaw;
 		 imu_accel[1] -= imu->info.bias_y;
 
 		 /***互补滤波***/
-		 MahonyAHRSupdateIMU(imu->angle_q, imu_gyro[0], imu_gyro[1], imu_gyro[2], imu_accel[0], imu_accel[1], imu_accel[2]);
+		 float static last_q[4];
+		 memcpy(last_q, imu->angle_q, 4*sizeof(float));
+		 MahonyAHRSupdateIMU(imu->angle_q, imu_gyro, imu_accel);
+		 if(imu->angle_q[0]!=imu->angle_q[0])
+		 {
+//			 memcpy(imu->angle_q, last_q, 4*sizeof(float));
+		 }
 		 imu->angle[0] = atan2f(2.0f*(imu->angle_q[0]*imu->angle_q[3]+imu->angle_q[1]*imu->angle_q[2]), 2.0f*(imu->angle_q[0]*imu->angle_q[0]+imu->angle_q[1]*imu->angle_q[1])-1.0f);
 		 imu->angle[1] = asinf(-2.0f*(imu->angle_q[1]*imu->angle_q[3]-imu->angle_q[0]*imu->angle_q[2]));
 		 imu->angle[2] = atan2f(2.0f*(imu->angle_q[0]*imu->angle_q[1]+imu->angle_q[2]*imu->angle_q[3]),2.0f*(imu->angle_q[0]*imu->angle_q[0]+imu->angle_q[3]*imu->angle_q[3])-1.0f);
@@ -162,7 +169,7 @@ void BMI088Update(IMU_TypeDef *imu)
 
 float IMUGetPitch(IMU_TypeDef *imu)
 {
-    return imu->angle[1];
+    return imu->angle[2];
 }
 
 float IMUGetYaw(IMU_TypeDef *imu)
@@ -172,7 +179,7 @@ float IMUGetYaw(IMU_TypeDef *imu)
 
 void IMUInit()
 {
-    IMU_TypeDef imu1;
+    IMU_TypeDef static imu1;
 	imu1.spi.hspi_x = &hspi1;
 	imu1.spi.port_accel = CS1_Accel_GPIO_Port;
 	imu1.spi.pin_accel = CS1_Accel_Pin;
@@ -186,9 +193,13 @@ void IMUInit()
 	imu1.info.bias_y = (141.763613f * 0.0008974);
 	
 	imu1.angle_q[0] = 1;
+	imu1.angle_q[1] = 0;
+	imu1.angle_q[2] = 0;
+	imu1.angle_q[3] = 0;
 	imu1.pitch = IMUGetPitch;
 	imu1.yaw = IMUGetYaw;
 	imu1.update = BMI088Update;
+	imu1.info.enable = 1;
 
 	BMI088Init(&imu1);
 	imu_list[0] = malloc(sizeof(IMU_TypeDef));

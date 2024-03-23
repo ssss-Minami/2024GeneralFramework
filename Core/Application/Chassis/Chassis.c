@@ -33,16 +33,18 @@ void OnmiSolve(Chassis_CmdTypedef *cmd, float *ret)
 }
 
 /*
- * @brief  	全向轮逆解算
+ * @brief  	全向轮逆解算(3508电机)
  * @param	底盘四电机结构体指针，顺序1-4
- * @retval 	底盘自旋角速度，rad/s
+ * @retval 	底盘自旋速度，rps
  * @todo    按需增加对里程的解算
  */
 float ChassisGetOmega(Motor_TypeDef *motor[4])
 {
     float ret=0;
     for(int i=0;i<4;i++)
-        ret += MotorGetVal(motor[1]);
+        ret += MotorGetVal(motor[i], ORIGIN)/60;	//RPM to RPS
+    ret = (ret*187.0/3591.0)/4;	//转换到输出端转速
+    ret = ret*(WHEEL_RADIUS/CHASSIS_RADIUS);
     return ret;
 }
 

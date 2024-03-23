@@ -16,11 +16,12 @@
 
 #include "MahonyAHRS.h"
 #include <math.h>
+#include "ErrorHandel.h"
 
 //---------------------------------------------------------------------------------------------------
 // Definitions
 
-#define sampleFreq	100.0f			// sample frequency in Hz
+#define sampleFreq	200.0f			// sample frequency in Hz
 #define twoKpDef	(2.0f * 0.5f)	// 2 * proportional gain
 #define twoKiDef	(2.0f * 0.0f)	// 2 * integral gain
 
@@ -54,7 +55,7 @@ void MahonyAHRSupdate(float q[4], float gx, float gy, float gz, float ax,
 
 	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
 	if ((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-		MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az);
+//		MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az);
 		return;
 	}
 
@@ -153,18 +154,22 @@ void MahonyAHRSupdate(float q[4], float gx, float gy, float gz, float ax,
 //---------------------------------------------------------------------------------------------------
 // IMU algorithm update
 
-void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax,
-		float ay, float az) {
+void MahonyAHRSupdateIMU(float q[4], float gyro[3], float accel[3]) {
 	float recipNorm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
 	float qa, qb, qc;
+	float gx = gyro[0], gy = gyro[1], gz = gyro[2];
+	float ax = accel[0], ay = accel[1], az = accel[2];
 
 	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
 	if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
 
 		// Normalise accelerometer measurement
 		recipNorm = invSqrt(ax * ax + ay * ay + az * az);
+		if(fabs(recipNorm) > 100)
+//			goto skip;
+			return;
 		ax *= recipNorm;
 		ay *= recipNorm;
 		az *= recipNorm;
@@ -198,7 +203,7 @@ void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax,
 		gy += twoKp * halfey;
 		gz += twoKp * halfez;
 	}
-
+	skip:
 	// Integrate rate of change of quaternion
 	gx *= (0.5f * (1.0f / sampleFreq));		// pre-multiply common factors
 	gy *= (0.5f * (1.0f / sampleFreq));
@@ -210,7 +215,6 @@ void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax,
 	q[1] += (qa * gx + qc * gz - q[3] * gy);
 	q[2] += (qa * gy - qb * gz + q[3] * gx);
 	q[3] += (qa * gz + qb * gy - qc * gx);
-
 	// Normalise quaternion
 	recipNorm = invSqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
 	q[0] *= recipNorm;
@@ -224,12 +228,16 @@ void MahonyAHRSupdateIMU(float q[4], float gx, float gy, float gz, float ax,
 // See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
 
 float invSqrt(float x) {
+	if(sizeof(x)!=sizeof(float))
+		return 0;
 	float halfx = 0.5f * x;
 	float y = x;
 	long i = *(long*) &y;
 	i = 0x5f3759df - (i >> 1);
 	y = *(float*) &i;
 	y = y * (1.5f - (halfx * y * y));
+	if(y != y)
+		sErrorHandel(OUT_OF_ENUM);
 	return y;
 }
 

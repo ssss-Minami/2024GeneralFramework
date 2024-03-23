@@ -60,7 +60,7 @@ void TopicCbk(Can_InfoTypedef *st, uint8_t *rxdata, uint8_t list_id)
         }
     }
     error:
-    Message[0] = 255;
+
     return;
 }
 

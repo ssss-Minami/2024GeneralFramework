@@ -34,7 +34,7 @@ void CANBusTask(void *argument)
     {
         MotorCalc();
         CanSendMsg(); 
-        osDelay(5);
+        osDelay(2);
 //        osDelayUntil(time+CANBUS_TASK_PERIOD);
 //        time = osKernelSysTick();
     }

@@ -16,12 +16,18 @@ osThreadId_t gimbal_task_handel;
 //     .mq_mem = sizeof(gimbal_cmd)
 // };
 
-
+//TODO: updata feedforward for motor_yaw
 void GimbalCtrl(Gimbal_CmdTypedef *st)
 {   
 	//弧度转6020编码值
-    MotorSetTar(motor_list[MOTOR_YAW], 4096*st->v_yaw/PI, INCR);
-    MotorSetTar(motor_list[MOTOR_PITCH], 4096*st->v_pitch/PI, INCR);
+    MotorSetTar(motor_list[MOTOR_YAW], st->v_yaw, INCR);
+    MotorSetTar(motor_list[MOTOR_YAW], st->omega_z*60*CHASSIS_RADIUS*187/(3591*WHEEL_RADIUS), FEED);
+    float pitch_tar = 4096*st->v_pitch/PI + motor_list[MOTOR_PITCH]->target;
+    if(pitch_tar >PITCH_UP_BOUND)
+    	pitch_tar = PITCH_UP_BOUND;
+    else if(pitch_tar <PITCH_LW_BOUND)
+    	pitch_tar = PITCH_LW_BOUND;
+    MotorSetTar(motor_list[MOTOR_PITCH], pitch_tar, ABS);
 }
 
 
@@ -35,13 +41,14 @@ void GimbalInit(void)
     
     MotorSetZeroPoint(motor_list[MOTOR_YAW]);
     MotorSetTar(motor_list[MOTOR_YAW], motor_list[MOTOR_YAW]->info.zero_point, ABS);
-
+    MotorSetZeroPoint(motor_list[MOTOR_PITCH]);
+    MotorSetTar(motor_list[MOTOR_YAW], 0.5*(PITCH_LW_BOUND+PITCH_UP_BOUND), ABS);
 }
 
 void GimbalTask(void *argument)
 {
 
-    Gimbal_CmdTypedef gimbal_cmd; 
+    Gimbal_CmdTypedef gimbal_cmd;
 //    uint32_t time = osKernelSysTick();
     for(;;)
     {
@@ -50,7 +57,7 @@ void GimbalTask(void *argument)
         
 //        osDelayUntil(time+GIMBAL_TASK_PERIOD);
 //        time = osKernelSysTick();
-        osDelay(5);
+        osDelay(GIMBAL_TASK_PERIOD);
     }
 }
 

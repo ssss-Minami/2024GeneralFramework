@@ -66,6 +66,7 @@ void MotorCalc(void)
         }
         else if(type == IMU)
         {
+        	val_now = MotorGetVal(motor_list[i], RAD);
             //多圈转单圈 && 编码转弧度
             
             if(motor_list[i]->info.motor_type != OTHER)
@@ -73,7 +74,7 @@ void MotorCalc(void)
                 if(*tar_now - val_now > PI) *tar_now -= 2*PI;
                 if(val_now - *tar_now > PI) *tar_now += 2*PI;
             }
-            motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), val_now, *tar_now);
+            motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), 4096*val_now/PI, 4096*(*tar_now)/PI);
             motor_list[i]->output = PID_Incr(&(motor_list[i]->pid[SPEED]), motor_list[i]->data.speed, (motor_list[i]->output + motor_list[i]->feed_fwd));
             
         }
@@ -132,7 +133,7 @@ float MotorGetVal(Motor_TypeDef *motor, uint8_t style)
         if(style == ORIGIN)
             val = motor->data.angle;
         else if(motor->info.motor_type==GM6020)
-            val = ((motor->data.angle/8192)*2*PI) -PI;
+            val = ((motor->data.angle/8192)*2*PI);
         else
             sErrorHandel(UNEXPECTED);
     else if(motor->info.pid_type == SPEED)
@@ -274,7 +275,7 @@ void MotorRestart(Motor_TypeDef *motor)
         if(m->info.pid_type==DUAL_LOOP)
             MotorSetTar(m, m->info.zero_point, ABS);
         else if(m->info.pid_type==IMU)
-            MotorSetTar(m, MotorGetVal(m, ORIGIN), ABS);
+            MotorSetTar(m, MotorGetVal(m, RAD), ABS);
         m->info.enable = 1;
         if(motor!=NULL)
             return;
@@ -304,17 +305,17 @@ void MotorInit()
 {
     /* Yaw init */
     PID_TypeDef pid_outer = {
-        .Kp = 30,
-        .Ki = 0.65,
+        .Kp = 22,
+        .Ki = 0.15,
         .Kd = 0,
-        .Output_Max = 8000,
+        .Output_Max = 10000,
         .Err_sum_Max = 5000
     };
     PID_TypeDef pid_inner = {
-        .Kp = 10,
-        .Ki = 1.8,
-        .Kd = 0.05,
-        .Output_Max = 10000,
+        .Kp = 0.8,
+        .Ki = 0.7,
+        .Kd = 0.3,
+        .Output_Max = 20000,
         .Err_sum_Max = 8000
     };
     Motor_InitTypedef init = {
@@ -328,16 +329,25 @@ void MotorInit()
 	.rxheader_id = 0x205,
     .pid_outer = pid_outer,
     .pid_inner = pid_inner,
-    .opt_max = 8000
+    .opt_max = 10000
    };
     MotorRegist(init);   
 
     /* Pitch init */
-    init.can_id = 2;
+    init.can_id = 1;
+    init.hcan = &hcan2;
     init.rxheader_id = 0x205;
     init.list_id = MOTOR_PITCH;
     init.pid_type = DUAL_LOOP;
     init.source = NULL;
+    pid_outer.Kp = 8;
+    pid_outer.Ki = 0;
+    pid_outer.Kd = 0;
+    init.pid_outer = pid_outer;
+    pid_inner.Kp = 4;
+    pid_inner.Ki = 25;
+    pid_inner.Kd = 0.001;
+    init.pid_inner = pid_inner;
     MotorRegist(init);
 
     /* Chassis init */
@@ -348,6 +358,7 @@ void MotorInit()
     pid_inner.Output_Max = 5000;
     init.pid_inner = pid_inner;
     init.can_id = 1;
+    init.hcan = &hcan1;
     init.list_id = MOTOR_CHS_1;
     init.motor_type = M3508,
     init.pid_type = SPEED;
