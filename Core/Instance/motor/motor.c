@@ -28,8 +28,10 @@ void MotorCalc(void)
             continue;
         }
         PID_Type_e type = motor_list[i]->info.pid_type;
-        float val_now = MotorGetVal(motor_list[i], ORIGIN);
+        float val_now;
+        val_now = MotorGetVal(motor_list[i], RAD);
         float *tar_now;
+        float static val_last=0;
         tar_now = &motor_list[i]->target;
         
         if(type == SPEED)
@@ -48,8 +50,8 @@ void MotorCalc(void)
             //对Dji电机角度多圈转单圈
             if(motor_list[i]->info.motor_type != OTHER)
             {
-                if(*tar_now - val_now > 4096) *tar_now -= 8192;
-                if(val_now - *tar_now > 4096) *tar_now += 8192;
+                if(*tar_now - val_now > PI) *tar_now -= 2*PI;
+                if(val_now - *tar_now > PI) *tar_now += 2*PI;
             }
             motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), val_now, *tar_now);
         }
@@ -58,11 +60,12 @@ void MotorCalc(void)
             //对Dji电机角度多圈转单圈
             if(motor_list[i]->info.motor_type != OTHER)
             {
-                if(*tar_now - val_now > 4096) *tar_now -= 8192;
-                if(val_now - *tar_now > 4096) *tar_now += 8192;
+                if(*tar_now - val_now > PI) *tar_now -= 2*PI;
+                if(val_now - *tar_now > PI) *tar_now += 2*PI;
             }
+
             motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), val_now, *tar_now);
-            motor_list[i]->output = PID_Incr(&(motor_list[i]->pid[SPEED]), motor_list[i]->data.speed, motor_list[i]->output);
+            motor_list[i]->output = PID_Incr(&(motor_list[i]->pid[SPEED]), 2*PI*motor_list[i]->data.speed/60.0, motor_list[i]->output);
         }
         else if(type == IMU)
         {
@@ -74,9 +77,19 @@ void MotorCalc(void)
                 if(*tar_now - val_now > PI) *tar_now -= 2*PI;
                 if(val_now - *tar_now > PI) *tar_now += 2*PI;
             }
-            motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), 4096*val_now/PI, 4096*(*tar_now)/PI);
+            motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), val_now, (*tar_now));
             motor_list[i]->output = PID_Incr(&(motor_list[i]->pid[SPEED]), motor_list[i]->data.speed, (motor_list[i]->output + motor_list[i]->feed_fwd));
             
+        }
+        else if(type == AMMO)
+        {
+            //多圈转单圈 && 编码转弧度
+            if(val_now - val_last < 0)
+            	*tar_now = *tar_now>2*PI ? *tar_now-2*PI : *tar_now;
+            val_last = val_now;
+            motor_list[i]->output = PID_Origin(&(motor_list[i]->pid[ANGLE]), val_now, *tar_now);
+            motor_list[i]->output = PID_Incr(&(motor_list[i]->pid[SPEED]), motor_list[i]->data.speed, (motor_list[i]->output + motor_list[i]->feed_fwd));
+
         }
         else
         	sErrorHandel(OUT_OF_ENUM);
@@ -129,18 +142,18 @@ float MotorGetVal(Motor_TypeDef *motor, uint8_t style)
     if(style!=ORIGIN && style!=RAD)
         sErrorHandel(OUT_OF_ENUM);
     float val;
-    if(motor->info.pid_type==ANGLE || motor->info.pid_type==DUAL_LOOP)
+    if(motor->info.pid_type==ANGLE || motor->info.pid_type==DUAL_LOOP || motor->info.pid_type==AMMO)
         if(style == ORIGIN)
             val = motor->data.angle;
-        else if(motor->info.motor_type==GM6020)
-            val = ((motor->data.angle/8192)*2*PI);
+        else if(motor->info.motor_type==GM6020 || motor->info.motor_type==M2006)
+            val = (((float)motor->data.angle/8192.0)*2*PI);
         else
             sErrorHandel(UNEXPECTED);
     else if(motor->info.pid_type == SPEED)
         if(style == ORIGIN)
             val = motor->data.speed;
         else
-            val = motor->data.speed*2*PI;
+            val = motor->data.speed*2*PI/60;
     else if(motor->info.pid_type == IMU)
         if(style == ORIGIN)
             val = motor->data.angle;
@@ -272,10 +285,14 @@ void MotorRestart(Motor_TypeDef *motor)
         PID_Clear(&m->pid[INNER]);
         PID_Clear(&m->pid[OUTER]);
         MotorSetZeroPoint(m);
-        if(m->info.pid_type==DUAL_LOOP)
-            MotorSetTar(m, m->info.zero_point, ABS);
-        else if(m->info.pid_type==IMU)
-            MotorSetTar(m, MotorGetVal(m, RAD), ABS);
+        if(m->info.motor_type!=OTHER)
+        {
+        	if(m->info.pid_type==DUAL_LOOP)
+        	   MotorSetTar(m, 2*PI*m->info.zero_point/8192.0, ABS);
+        	else if(m->info.pid_type==IMU)
+        	   MotorSetTar(m, MotorGetVal(m, RAD), ABS);
+        }
+
         m->info.enable = 1;
         if(motor!=NULL)
             return;
@@ -305,25 +322,25 @@ void MotorInit()
 {
     /* Yaw init */
     PID_TypeDef pid_outer = {
-        .Kp = 22,
-        .Ki = 0.15,
-        .Kd = 0,
-        .Output_Max = 10000,
+        .Kp = 22.81,
+        .Ki = 0.004423,
+        .Kd = 14.4,
+        .Output_Max = 12000,
         .Err_sum_Max = 5000
     };
     PID_TypeDef pid_inner = {
-        .Kp = 0.8,
-        .Ki = 0.7,
-        .Kd = 0.3,
-        .Output_Max = 20000,
-        .Err_sum_Max = 8000
+        .Kp = 3.5,
+        .Ki =400,
+        .Kd = 1.50,
+        .Output_Max = 12000,
+        .Err_sum_Max = 10000
     };
     Motor_InitTypedef init = {
     .can_id = 1,
     .hcan = &hcan1,
     .list_id = MOTOR_YAW,
     .motor_type = GM6020,
-    .pid_type = IMU,
+    .pid_type = DUAL_LOOP,
     .source = MotorGetIMU0_Yaw,
     .txheader_id = 0x1FF,
 	.rxheader_id = 0x205,
@@ -378,6 +395,39 @@ void MotorInit()
     init.list_id = MOTOR_CHS_4;
     init.rxheader_id = 0x200 + init.can_id;
     MotorRegist(init);
+
+    //shooter init
+    init.hcan = &hcan2;
+    init.can_id = 1;
+    init.list_id = MOTOR_SHT_R;
+    init.txheader_id = 0x200;
+    init.rxheader_id = 0x200 + init.can_id;
+    MotorRegist(init);
+    init.can_id = 2;
+    init.list_id = MOTOR_SHT_L;
+    init.rxheader_id = 0x200 + init.can_id;
+    MotorRegist(init);
+
+    //ammofeeder init
+    pid_outer.Kp = 0.24;
+    pid_outer.Ki = 0.07;
+    pid_outer.Kd = 0;
+    pid_outer.Output_Max = 10000;
+    pid_outer.Err_sum_Max = 4000;
+    pid_inner.Kp = 0.01;
+    pid_inner.Ki = 0.25;
+    pid_inner.Kd = 0;
+    pid_inner.Output_Max = 8000;
+    init.pid_inner = pid_inner;
+    init.pid_outer = pid_outer;
+    init.can_id = 7;
+    init.motor_type = M2006;
+    init.pid_type = AMMO;
+    init.list_id = MOTOR_AMMO;
+    init.txheader_id = 0x1FF;
+    init.rxheader_id = 0x200 + init.can_id;
+    MotorRegist(init);
+
 }
 
 /*
@@ -405,7 +455,7 @@ void MotorRegist(Motor_InitTypedef st)
     motor.can.hcan_x = st.hcan;
 
     Motor_InfoTypeDef info = {
-        .enable = 1,
+        .enable = 0,
         .motor_type = st.motor_type,
         .output_max = st.opt_max,
         .pid_type = st.pid_type,

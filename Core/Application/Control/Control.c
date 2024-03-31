@@ -9,7 +9,6 @@
 #include "math.h"
 
 osThreadId_t control_task_handel;
-uint32_t heap_left;
 void ControlInit(void)
 {
 	osThreadAttr_t attr = {.name = "ControlTask"};
@@ -32,6 +31,28 @@ void ChassisCmdTrans(Chassis_CmdTypedef *cmd, float chs_zeropoint, float gim_ang
     cmd->vy = vy_tmp;
 }
 
+void KeyboardCtrl(Gimbal_CmdTypedef *gim, Chassis_CmdTypedef *chs)
+{
+    gim->v_yaw -= (RC_Ctl.keyboard.x >> 4)*0.001;
+    gim->v_pitch += (RC_Ctl.keyboard.y >> 4)*0.001;
+    gim->shooter = RC_Ctl.keyboard.l>=1 ? SEMI_AUTO : STOP;
+
+    chs->vx = (RC_Ctl.keyboard.W * (-CHS_SPEED_LMT)) + (RC_Ctl.keyboard.S * (CHS_SPEED_LMT));
+    chs->vy = (RC_Ctl.keyboard.A * (-CHS_SPEED_LMT)) + (RC_Ctl.keyboard.D * (CHS_SPEED_LMT));
+    chs->omega_z = RC_Ctl.keyboard.SHIFT * CHS_SPIN_LMT;
+}
+
+void RemoteCtrl(Gimbal_CmdTypedef *gim, Chassis_CmdTypedef *chs)
+{
+    chs->vx = -RC_Ctl.rc.ch2 * REMOTE_X_SEN;
+    chs->vy = -RC_Ctl.rc.ch1 * REMOTE_Y_SEN;
+    // chassis_cmd.omega_z = RC_Ctl.rc.sw2==1 ? 2*PI : 0;
+    gim->shooter = RC_Ctl.rc.sw2==1 ? SEMI_AUTO : 0;
+    gim->v_yaw = -RC_Ctl.rc.ch3 * REMOTE_YAW_SEN*CONTROL_TASK_PERIOD;
+    gim->v_pitch = -RC_Ctl.rc.ch4 * REMOTE_PITCH_SEN*CONTROL_TASK_PERIOD;
+
+}
+
 void ControlTask(void *argument)
 {
 //    uint32_t time = osKernelSysTick();
@@ -40,7 +61,7 @@ void ControlTask(void *argument)
     float static omege_chs;
     for(;;)
     {
-        if(RC_Ctl.rc.sw1==0 || RC_Ctl.rc.sw1==2)
+        if(RC_Ctl.rc.sw1!=1 && RC_Ctl.rc.sw1!=3)
         {   
             MotorStop(NULL);
             chassis_cmd.stop = 1;
@@ -50,22 +71,18 @@ void ControlTask(void *argument)
             MotorRestart(NULL);
             chassis_cmd.stop = 0;
         }
-
-        chassis_cmd.vx = -RC_Ctl.rc.ch2 * REMOTE_X_SEN;
-        chassis_cmd.vy = -RC_Ctl.rc.ch1 * REMOTE_Y_SEN;
-        chassis_cmd.omega_z = RC_Ctl.rc.sw2==1 ? 2*PI : 0;
-        ChassisCmdTrans(&chassis_cmd, CHASSIS_ZEROPOINT, MotorGetVal(motor_list[MOTOR_YAW], ORIGIN));
-        osMessageQueuePut(chassis_MQ_handel, &chassis_cmd, NULL, 0);
-
-        heap_left = osThreadGetStackSpace(control_task_handel);
         imu_list[0]->update(imu_list[0]);
-        osMessageQueueGet(chassis_RMQ_handel, &omege_chs, NULL, 0);
-        gimbal_cmd.v_yaw = -RC_Ctl.rc.ch3 * REMOTE_YAW_SEN*CONTROL_TASK_PERIOD;
-        gimbal_cmd.v_pitch = -RC_Ctl.rc.ch4 * REMOTE_PITCH_SEN*CONTROL_TASK_PERIOD;
+        KeyboardCtrl(&gimbal_cmd, &chassis_cmd);
+        RemoteCtrl(&gimbal_cmd, &chassis_cmd);
+        ChassisCmdTrans(&chassis_cmd, CHASSIS_ZEROPOINT, MotorGetVal(motor_list[MOTOR_YAW], ORIGIN));
+        
+        osMessageQueueGet(chassis_RMQ_handel, &omege_chs, NULL, 0);         
         gimbal_cmd.omega_z = -omege_chs;
         osMessageQueuePut(gimbal_MQ_handel, &gimbal_cmd, NULL, 0);
+        osMessageQueuePut(chassis_MQ_handel, &chassis_cmd, NULL, 0);
 //        osDelayUntil(time+CONTROL_TASK_PERIOD);
 //        time = osKernelSysTick();
+
         osDelay(CONTROL_TASK_PERIOD);
     }
 }

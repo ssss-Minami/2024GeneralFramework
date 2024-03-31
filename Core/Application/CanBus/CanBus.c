@@ -4,6 +4,8 @@
 #include "CanInst.h"
 #include "remote.h"
 #include "../Core/Instance/motor/motor.h"
+#include "../Core/Instance/SIN/sin.h"
+#include "usart.h"
 extern void MotorStop(Motor_TypeDef *motor);
 
 
@@ -26,16 +28,25 @@ void CANBusInit()
     
 }
 
-
+uint32_t diff=0;
 void CANBusTask(void *argument)
 {
-//    uint32_t time = osKernelSysTick();
+    uint32_t time = osKernelGetTickCount();
+
+//	for(int i=0;i<FREQTAB_LEN;i++)
+//		Freq_Tab[i] *= 0.5;
     for(;;)
     {
-        MotorCalc();
-        CanSendMsg(); 
-        osDelay(2);
-//        osDelayUntil(time+CANBUS_TASK_PERIOD);
-//        time = osKernelSysTick();
+
+    	MotorCalc();
+    	CanSendMsg();
+    	diff = osKernelGetTickCount() - time;
+        time = osKernelGetTickCount();
+    	osDelay(1);
     }
+
+
+//        osDelayUntil(time + CANBUS_TASK_PERIOD);
+
+
 }

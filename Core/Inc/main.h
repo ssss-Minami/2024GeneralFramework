@@ -59,14 +59,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define IST8310_Reset_Pin GPIO_PIN_6
 #define IST8310_Reset_GPIO_Port GPIOG
-#define LED_R_Pin GPIO_PIN_12
-#define LED_R_GPIO_Port GPIOH
 #define IS8310_Ready_Pin GPIO_PIN_3
 #define IS8310_Ready_GPIO_Port GPIOG
 #define LED_G_Pin GPIO_PIN_11
 #define LED_G_GPIO_Port GPIOH
-#define LED_B_Pin GPIO_PIN_10
-#define LED_B_GPIO_Port GPIOH
 #define CS1_Accel_Pin GPIO_PIN_4
 #define CS1_Accel_GPIO_Port GPIOA
 #define Ammo_Counter_Pin GPIO_PIN_12

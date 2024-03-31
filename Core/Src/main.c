@@ -35,6 +35,7 @@
 #include "SolveTrajectory.h"
 #include "referee.h"
 #include "remote.h"
+#include "../Core/Instance/SIN/sin.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,7 +113,6 @@ int main(void)
   MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_CAN1_Init();
-  MX_TIM1_Init();
   MX_TIM5_Init();
   MX_SPI1_Init();
   MX_USART3_UART_Init();
@@ -134,6 +134,7 @@ int main(void)
   MotorInit();
   CanInit();
   IMUInit();
+
 //  for(int i=0;i<3;i++){
 //	  IMUfilterInit(imu_fliter + i);
 //  }
@@ -235,11 +236,6 @@ static void MX_NVIC_Init(void)
 
 
 void PWM_INIT(){
-	  HAL_TIM_Base_Start(&htim1);
-	  HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
-	  HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
-	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 	  HAL_TIM_Base_Start(&htim3);
 	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 }
@@ -256,7 +252,10 @@ void PWM_INIT(){
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
+  if(htim->Instance == TIM5)
+  {
 
+  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6) {
     HAL_IncTick();

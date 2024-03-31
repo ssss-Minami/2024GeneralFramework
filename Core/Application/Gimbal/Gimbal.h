@@ -2,10 +2,13 @@
 #define __GIMBAL_H__
 #include "main.h"
 #include "cmsis_os2.h"
+
+
 typedef enum
 {
-    stop = 0,
-    shoot = 1
+    STOP = 0,
+    SEMI_AUTO = 1,
+    FULL_AUTO = 2
 }shooter_e;
 
 

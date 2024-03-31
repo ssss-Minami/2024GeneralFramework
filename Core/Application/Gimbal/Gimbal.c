@@ -21,13 +21,22 @@ void GimbalCtrl(Gimbal_CmdTypedef *st)
 {   
 	//弧度转6020编码值
     MotorSetTar(motor_list[MOTOR_YAW], st->v_yaw, INCR);
-    MotorSetTar(motor_list[MOTOR_YAW], st->omega_z*60*CHASSIS_RADIUS*187/(3591*WHEEL_RADIUS), FEED);
+//    MotorSetTar(motor_list[MOTOR_YAW], st->omega_z*60*CHASSIS_RADIUS*187/(3591*WHEEL_RADIUS), FEED);
     float pitch_tar = 4096*st->v_pitch/PI + motor_list[MOTOR_PITCH]->target;
     if(pitch_tar >PITCH_UP_BOUND)
     	pitch_tar = PITCH_UP_BOUND;
     else if(pitch_tar <PITCH_LW_BOUND)
     	pitch_tar = PITCH_LW_BOUND;
-    MotorSetTar(motor_list[MOTOR_PITCH], pitch_tar, ABS);
+//    MotorSetTar(motor_list[MOTOR_PITCH], pitch_tar, ABS);
+    float speed = CALIBRATE*10/(2*PI*FRICTION_RADIUS);
+    speed = speed*3591/187;		//摩擦轮rpm
+//    MotorSetTar(motor_list[MOTOR_SHT_L], -100, ABS);
+//    MotorSetTar(motor_list[MOTOR_SHT_R], 100, ABS);
+    if(st->shooter == SEMI_AUTO)
+        MotorSetTar(motor_list[MOTOR_AMMO], 36*(2*PI/8), INCR);
+    else if(st->shooter == FULL_AUTO)
+        MotorSetTar(motor_list[MOTOR_AMMO], (36*SHOOT_FREQ*(float)(GIMBAL_TASK_PERIOD)/1000)*(2*PI/8), INCR);
+    
 }
 
 
@@ -40,19 +49,24 @@ void GimbalInit(void)
     gimbal_task_handel = osThreadNew(GimbalTask, NULL, &attr_task);
     
     MotorSetZeroPoint(motor_list[MOTOR_YAW]);
-    MotorSetTar(motor_list[MOTOR_YAW], motor_list[MOTOR_YAW]->info.zero_point, ABS);
+    MotorSetTar(motor_list[MOTOR_YAW], (float)motor_list[MOTOR_YAW]->info.zero_point*2*PI/8192.0, ABS);
     MotorSetZeroPoint(motor_list[MOTOR_PITCH]);
-    MotorSetTar(motor_list[MOTOR_YAW], 0.5*(PITCH_LW_BOUND+PITCH_UP_BOUND), ABS);
+    MotorSetTar(motor_list[MOTOR_PITCH], 0.5*(PITCH_LW_BOUND+PITCH_UP_BOUND)*2*PI/8192, ABS);
 }
 
 void GimbalTask(void *argument)
 {
 
     Gimbal_CmdTypedef gimbal_cmd;
+    shooter_e last = STOP;
 //    uint32_t time = osKernelSysTick();
     for(;;)
     {
         osMessageQueueGet(gimbal_MQ_handel, &gimbal_cmd, NULL, 0);   //non blocking
+        if(gimbal_cmd.shooter==SEMI_AUTO && last==SEMI_AUTO)
+            gimbal_cmd.shooter = STOP;
+        else
+        	last = gimbal_cmd.shooter;
         GimbalCtrl(&gimbal_cmd);
         
 //        osDelayUntil(time+GIMBAL_TASK_PERIOD);
