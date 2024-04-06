@@ -15,6 +15,7 @@ typedef enum
 typedef struct
 {
     shooter_e shooter;
+    uint8_t frictiongear;
     float pitch;
     float yaw;
     float v_yaw;

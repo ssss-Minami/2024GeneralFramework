@@ -30,11 +30,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "kalman.h"
+
 #include "../Core/Instance/IMU/imu.h"
-#include "SolveTrajectory.h"
-#include "referee.h"
-#include "remote.h"
+#include "../Core/Algorithm/solveTrajectory/SolveTrajectory.h"
+#include "../Core/Instance/referee/referee.h"
+#include "../Core/Instance/remote/remote.h"
 #include "../Core/Instance/SIN/sin.h"
 /* USER CODE END Includes */
 
@@ -66,7 +66,6 @@ void MX_FREERTOS_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 void Can_Filter1Config(void);
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 extern void ControlInit();
 extern void CanInit(void);
@@ -74,6 +73,7 @@ extern void MotorInit(void);
 extern void GimbalInit(void);
 extern void CANBusInit(void);
 extern void ChassisInit(void);
+extern void UI_taskInit(void);
 
 /* USER CODE END PFP */
 
@@ -126,30 +126,22 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_Start(&hcan1);
-#ifdef USE_CAN2
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_Start(&hcan2);
-#endif
-  KalmanFilter_Init(&Klm_Motor[0]);
+  #ifdef USE_CAN2
+    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&hcan2);
+  #endif
+  /* 模块初始化 */
   MotorInit();
   CanInit();
   IMUInit();
-
-//  for(int i=0;i<3;i++){
-//	  IMUfilterInit(imu_fliter + i);
-//  }
-
   RemoteInit();
-//图传、裁判系统串口DMA
-//      HAL_UART_Receive_DMA(&huart1, referee_rx_buf, referee_rx_len);
-//    __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
-//      HAL_UART_Receive_DMA(&huart6, referee_rx_buf, referee_rx_len);
-//    __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
-
+  RefereeInit();
+  /* 任务初始化 */
   ControlInit();
   CANBusInit();
   GimbalInit();
   ChassisInit();
+  UI_taskInit();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -167,7 +159,6 @@ int main(void)
 
 	  HAL_GPIO_TogglePin(LED_G_GPIO_Port, LED_G_Pin);
 	  HAL_Delay(500);
-
 
     /* USER CODE END WHILE */
 

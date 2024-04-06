@@ -2,7 +2,7 @@
 #include "cmsis_os2.h"
 #include "config.h"
 #include "CanInst.h"
-#include "remote.h"
+#include "../Core/Instance/remote/remote.h"
 #include "../Core/Instance/motor/motor.h"
 #include "../Core/Instance/SIN/sin.h"
 #include "usart.h"

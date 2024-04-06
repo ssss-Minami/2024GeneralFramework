@@ -18,7 +18,7 @@ typedef struct
     Motor_e motor_type;
     uint8_t enable;
     float output_max;
-    uint16_t zero_point;
+    float zero_point;
 }Motor_InfoTypeDef;
 
 typedef struct

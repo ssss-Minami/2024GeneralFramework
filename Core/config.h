@@ -37,17 +37,23 @@
 #define REMOTE_Y_SEN    0.005
 
 
-//各模块所用控制器
-#define REMOTE_UART huart3
-#define REFEREE_UART huart1
+//控制器
+// #define USE_REMOTE_KEYBORAD 1    //若使用遥控器传输键鼠数据，取消注释
 
 //车体数据
 #define WHEEL_RADIUS 0.075  //底盘车轮半径, 米
 #define CHASSIS_RADIUS 0.23
 #define FRICTION_RADIUS 0.03	//摩擦轮半径
-#define PITCH_UP_BOUND	4600
-#define PITCH_LW_BOUND  3600//pitch轴可动范围上下界
-#define CHASSIS_ZEROPOINT   7900//在底盘坐标系中，云台yaw与底盘x平行时yaw轴电机角度
+
+/*步兵1*/
+//#define PITCH_UP_BOUND	2*PI*4600/8192.0
+//#define PITCH_LW_BOUND  2*PI*3600/8192.0	//pitch轴可动范围上下界
+//#define CHASSIS_ZEROPOINT   7900	//在底盘坐标系中，云台yaw与底盘x平行时yaw轴电机角度
+
+/*步兵2*/
+#define PITCH_UP_BOUND	2*PI*7200/8192.0
+#define PITCH_LW_BOUND  2*PI*6250/8192.0	//pitch轴可动范围上下界
+#define CHASSIS_ZEROPOINT   300	//在底盘坐标系中，云台yaw与底盘x平行时yaw轴电机角度
 
 //性能
 #define SHOOT_FREQ 3    //射频, hz

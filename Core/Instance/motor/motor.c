@@ -311,6 +311,8 @@ uint8_t MotorSetZeroPoint(Motor_TypeDef *motor)
     if(motor->data.angle != 0)
     {
         motor->info.zero_point = motor->data.angle;
+        if(motor->info.pid_type != SPEED)
+            motor->info.zero_point = MotorGetVal(motor, RAD);
         return 1;
     }
     else
@@ -357,13 +359,13 @@ void MotorInit()
     init.list_id = MOTOR_PITCH;
     init.pid_type = DUAL_LOOP;
     init.source = NULL;
-    pid_outer.Kp = 8;
-    pid_outer.Ki = 0;
+    pid_outer.Kp = 600;
+    pid_outer.Ki = 4;
     pid_outer.Kd = 0;
     init.pid_outer = pid_outer;
-    pid_inner.Kp = 4;
-    pid_inner.Ki = 25;
-    pid_inner.Kd = 0.001;
+    pid_inner.Kp = 300;
+    pid_inner.Ki = 100;
+    pid_inner.Kd = 0;
     init.pid_inner = pid_inner;
     MotorRegist(init);
 
@@ -409,13 +411,13 @@ void MotorInit()
     MotorRegist(init);
 
     //ammofeeder init
-    pid_outer.Kp = 0.24;
-    pid_outer.Ki = 0.07;
+    pid_outer.Kp = 70;
+    pid_outer.Ki = 0.1;
     pid_outer.Kd = 0;
-    pid_outer.Output_Max = 10000;
+    pid_outer.Output_Max = 15000;
     pid_outer.Err_sum_Max = 4000;
-    pid_inner.Kp = 0.01;
-    pid_inner.Ki = 0.25;
+    pid_inner.Kp = 4;
+    pid_inner.Ki = 1;
     pid_inner.Kd = 0;
     pid_inner.Output_Max = 8000;
     init.pid_inner = pid_inner;

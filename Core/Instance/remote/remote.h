@@ -7,8 +7,8 @@
  * v1.1.1		许金帅		2023/4/12			支持接收机热拔插
  *
  */
-#ifndef __REMOTE_H
-#define __REMOTE_H
+#ifndef __REMOTE_H__
+#define __REMOTE_H__
 #include "main.h"
 
 #define DR16_CH_VALUE_MIN ((uint16_t)364)
@@ -61,9 +61,8 @@ typedef struct
     } __attribute__((packed))keyboard;
 
 }RC_Ctl_t;
+
 extern RC_Ctl_t RC_Ctl;
-extern void Remote_unable(void);
-extern void Remote_restart();
+extern void RemoteRestart();
 extern void RemoteInit(void);
-extern uint8_t 	Remote_data_is_error(void);
 #endif

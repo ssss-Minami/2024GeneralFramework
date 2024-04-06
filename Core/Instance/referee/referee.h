@@ -3,27 +3,21 @@
  * @brief	裁判系统、图传串口中断
  * @history
  * 版本			作者			编写日期
- * v1.0.0		姚启杰		2023/4/1
- *
+ * v1.0.0		姚启杰		2023/4/1	
  */
 #ifndef _REFEREE_H_
 #define _REFEREE_H_
 
-#define referee_buf_size 300
-#define referee_pic_buf_size 100
-#define referee_tx_buf_size 128
+#define REFEREE_RXBUFF_SIZE 300
+#define REFEREE_PICBUFF_SIZE 100
+#define REFEREE_TXBUFF_SIZE 128
 #define Offset_SOF_DataLength 1      //裁判系统数据帧偏移
 #define Offset_CRC8 4
 #define Offset_cmd_ID 5
 #define Offset_data 7
 
-extern uint8_t referee_rx_len;
-extern uint8_t referee_pic_rx_len;
-extern uint8_t referee_rx_buf[referee_buf_size];
-extern uint8_t referee_pic_rx_buf[referee_pic_buf_size];
-extern uint8_t referee_tx_buf[referee_tx_buf_size];
+#include "main.h"
 
-void referee_solve(uint8_t *data);
 typedef enum{
 	referee_OK = 0,
 	referee_solving = 1,
@@ -40,7 +34,7 @@ typedef enum
 	ID_event_data  = 0x0101,//场地事件数据
 	ID_supply_projectile_action = 0x0102,//场地补给站动作标识数据
 	ID_referee_warn = 0x0104,//裁判系统警告数据
-	ID_dart_shoot_time =0x0105  , //飞镖发射口倒计时
+	ID_dart_shoot_info =0x0105  , //飞镖发射
 
 	ID_game_robot_state = 0x0201,//机器人状态数据
 	ID_power_heat_data = 0x0202,//实时功率热量数据
@@ -72,26 +66,24 @@ typedef enum
 	LEN_game_state =  11,	//0x0001
 	LEN_game_result =  1,	//0x0002
 	LEN_game_robot_hp =  32,	//0x0003  比赛机器人血量数据(v1.4中被修改)
-	LEN_game_dart_state =3  , //0X0004飞镖发射状态
-	LEN_game_buff =11 , //0X0005
 
 	LEN_event_data  =  4,	//0x0101  场地事件数据
 	LEN_supply_projectile_action =  4,	//0x0102场地补给站动作标识数据
-	LEN_referee_warn =2, //裁判系统警告 0x0104
-	LEN_dart_remaining_time =1  , //飞镖发射口倒计时
+	LEN_referee_warn =3, //裁判系统警告 0x0104
+	LEN_dart_info =3  , //飞镖发射口倒计时
 
-	LEN_game_robot_state = 27,	//0x0201机器人状态数据
+	LEN_game_robot_state = 13,	//0x0201机器人状态数据
 	LEN_power_heat_data = 16,	//0x0202实时功率热量数据
 	LEN_game_robot_pos = 16,	//0x0203机器人位置数据
-	LEN_buff_musk =  1,	//0x0204机器人增益数据
-	LEN_aerial_robot_energy  =  1,	//0x0205空中机器人能量状态数据
+	LEN_buff_musk =  6,	//0x0204机器人增益数据
+	LEN_aerial_robot_energy  =  2,	//0x0205空中机器人能量状态数据
 	LEN_robot_hurt =  1,	//0x0206伤害状态数据
 	LEN_shoot_data =  7,	//0x0207	实时射击数据（此条目在串口协议v1.4中被修改）
 	LEN_bullet_remaining = 6,//剩余发射数（此条目在串口协议v1.4中被修改）
 
 	LEN_rfid_status	= 4,
-	LEN_dart_client_directive = 12,//0x020A
-	LEN_map_interactive_headerdata = 15,
+	LEN_dart_client_directive = 6,//0x020A
+	LEN_map_interactive_headerdata = 15,//0x20B
 	LEN_keyboard_information = 12,//0x0304
 
 }JudgeDataLength;
@@ -99,11 +91,11 @@ typedef enum
 /* ID: 0x0001  Byte:  11    比赛状态数据 */
 typedef struct
 {
-	uint8_t game_type : 4;
-	uint8_t game_progress : 4;
-	uint16_t stage_remain_time;
-  uint64_t SyncTimeStamp;
-}__attribute__((packed)) ext_game_status_t;
+ uint8_t game_type : 4;
+ uint8_t game_progress : 4;
+ uint16_t stage_remain_time;
+ uint64_t SyncTimeStamp;
+}__attribute__((packed))game_status_t;
 
 /* ID: 0x0002  Byte:  1    比赛结果数据 */
 typedef struct
@@ -114,134 +106,80 @@ typedef struct
 /* ID: 0x0003  Byte:  32    比赛机器人血量数据 */
 typedef struct
 {
-	uint16_t red_1_robot_HP;
-	uint16_t red_2_robot_HP;
-	uint16_t red_3_robot_HP;
-	uint16_t red_4_robot_HP;
-	uint16_t red_5_robot_HP;
-//	uint16_t red_6_robot_HP;  //协议v1.4中此条目被删除
-	uint16_t red_7_robot_HP;
-	uint16_t red_outpost_HP;
-  uint16_t red_base_HP;
-
-	uint16_t blue_1_robot_HP;
-	uint16_t blue_2_robot_HP;
-	uint16_t blue_3_robot_HP;
-	uint16_t blue_4_robot_HP;
-	uint16_t blue_5_robot_HP;
-//	uint16_t blue_6_robot_HP;  //协议v1.4中此条目被删除
-	uint16_t blue_7_robot_HP;
-
-	uint16_t blue_outpost_HP;
-  uint16_t blue_base_HP;
-}__attribute__((packed)) ext_game_robot_HP_t;
-
-/* ID: 0x0004  Byte:  3    飞镖发射状态 */
-typedef struct
-{
-	uint8_t dart_belong;
-	uint16_t stage_remaining_time;
-}__attribute__((packed)) ext_dart_status_t;
-
-/* ID: 0x0005  Byte:  11    buff */
-typedef struct
-{
-	uint8_t F1_zone_status:1;
-	uint8_t F1_zone_buff_debuff_status:3;
-
-	uint8_t F2_zone_status:1;
-	uint8_t F2_zone_buff_debuff_status:3;
-
-	uint8_t F3_zone_status:1;
-	uint8_t F3_zone_buff_debuff_status:3;
-
-	uint8_t F4_zone_status:1;
-	uint8_t F4_zone_buff_debuff_status:3;
-
-	uint8_t F5_zone_status:1;
-	uint8_t F5_zone_buff_debuff_status:3;
-
-	uint8_t F6_zone_status:1;
-	uint8_t F6_zone_buff_debuff_status:3;
-
-  uint16_t red1_bullet_left;
-
-  uint16_t red2_bullet_left;
-
-  uint16_t blue1_bullet_left;
-
-  uint16_t blue2_bullet_left;
-
-}__attribute__((packed)) ext_ICRA_buff_debuff_zone_status_t;
+ uint16_t red_1_robot_HP;
+ uint16_t red_2_robot_HP;
+ uint16_t red_3_robot_HP;
+ uint16_t red_4_robot_HP;
+ uint16_t red_5_robot_HP;
+ uint16_t red_7_robot_HP;
+ uint16_t red_outpost_HP;
+ uint16_t red_base_HP;
+ uint16_t blue_1_robot_HP;
+ uint16_t blue_2_robot_HP;
+ uint16_t blue_3_robot_HP;
+ uint16_t blue_4_robot_HP;
+ uint16_t blue_5_robot_HP;
+ uint16_t blue_7_robot_HP;
+ uint16_t blue_outpost_HP;
+ uint16_t blue_base_HP;
+}__attribute__((packed)) game_robot_HP_t;
 
 /* ID: 0x0101  Byte:  4    场地事件数据 */
 typedef struct
 {
-	uint32_t event_type;
+	uint32_t event_data;
 }__attribute__((packed)) ext_event_data_t;
 
 
 /* ID: 0x0102  Byte:  4    场地补给站动作标识数据 */
 typedef struct
 {
-	uint8_t supply_projectile_id;
+	uint8_t reserved;
 	uint8_t supply_robot_id;
 	uint8_t supply_projectile_step;
-  uint8_t supply_projectile_num;
+	uint8_t supply_projectile_num;
 }__attribute__((packed)) ext_supply_projectile_action_t;
 
 /* ID: 0x0104  Byte: 2   裁判系统警告信息 */
 typedef struct
 {
-  uint8_t level;
-	uint8_t foul_robot_id;
+  	uint8_t level;
+	uint8_t offending_robot_id;
+	uint8_t count;
 }__attribute__((packed)) ext_referee_warning_t;
 
 /* ID: 0x0105  Byte:1  飞镖发射口倒计时 */
 typedef struct
 {
 	uint8_t dart_remaining_time;
-} __attribute__((packed)) ext_dart_remaining_time_t;
+ 	uint16_t dart_info;
+} __attribute__((packed)) dart_info_t;
 
 /* ID: 0X0201  Byte: 27    机器人状态数据 */
 typedef struct
 {
-	uint8_t robot_id;   //机器人ID，可用来校验发送
-	uint8_t robot_level;  //1一级，2二级，3三级
-	uint16_t remain_HP;  //机器人剩余血量
-	uint16_t max_HP; //机器人满血量
-
-  uint16_t shooter1_17mm_cooling_rate;  //机器人 17mm 子弹热量冷却速度 单位 /s
-  uint16_t shooter1_17mm_cooling_limit;   // 机器人 17mm 子弹热量上限
-  uint16_t shooter1_17mm_speed_limit;
-
-
-  uint16_t shooter2_17mm_cooling_rate;
-  uint16_t shooter2_17mm_cooling_limit;
-  uint16_t shooter2_17mm_speed_limit;
-
-
-  uint16_t shooter_42mm_cooling_rate;
-  uint16_t shooter_42mm_cooling_limit;
-  uint16_t shooter_42mm_speed_limit;
-
-
-	uint16_t max_chassis_power;
-	uint8_t mains_power_gimbal_output : 1;
-	uint8_t mains_power_chassis_output : 1;
-	uint8_t mains_power_shooter_output : 1;
+	uint8_t robot_id;
+	uint8_t robot_level;
+	uint16_t current_HP;
+	uint16_t maximum_HP;
+	uint16_t shooter_barrel_cooling_value;
+	uint16_t shooter_barrel_heat_limit;
+	uint16_t chassis_power_limit;
+	uint8_t power_management_gimbal_output : 1;
+	uint8_t power_management_chassis_output : 1;
+	uint8_t power_management_shooter_output : 1;
 }__attribute__((packed)) ext_game_robot_state_t;
 
 /* ID: 0X0202  Byte: 16    实时功率热量数据 */
 typedef struct
 {
-	uint16_t chassis_volt;
+	uint16_t chassis_voltage;
 	uint16_t chassis_current;
-	float chassis_power;   //瞬时功率
-	uint16_t chassis_power_buffer;//60焦耳缓冲能量
-	uint16_t shooter_heat0;//17mm
-	uint16_t shooter_heat1;
-	uint16_t mobile_shooter_heat2;
+	float chassis_power;
+	uint16_t buffer_energy;
+	uint16_t shooter_17mm_1_barrel_heat;
+	uint16_t shooter_17mm_2_barrel_heat;
+	uint16_t shooter_42mm_barrel_heat;
 }__attribute__((packed)) ext_power_heat_data_t;
 
 /* ID: 0x0203  Byte: 16    机器人位置数据 */
@@ -249,20 +187,24 @@ typedef struct
 {
 	float x;
 	float y;
-	float z;
-	float yaw;
+	float angle;
 }__attribute__((packed)) ext_game_robot_pos_t;
 
 /* ID: 0x0204  Byte:  1    机器人增益数据 */
 typedef struct
 {
-	uint8_t power_rune_buff;
+	uint8_t recovery_buff;
+	uint8_t cooling_buff;
+	uint8_t defence_buff;
+	uint8_t vulnerability_buff;
+	uint16_t attack_buff;
 }__attribute__((packed)) ext_buff_musk_t;
 
 /* ID: 0x0205  Byte:  1    空中机器人能量状态数据 */
 typedef struct
 {
-  uint8_t attack_time;
+  	uint8_t airforce_status;
+ 	uint8_t time_remain;
 }__attribute__((packed)) aerial_robot_energy_t;
 
 /* ID: 0x0206  Byte:  1    伤害状态数据 */
@@ -276,9 +218,9 @@ typedef struct
 typedef struct
 {
 	uint8_t bullet_type;
-  uint8_t shooter_id;  //发射机构是17还是42
-	uint8_t bullet_freq;
-	float bullet_speed;
+	uint8_t shooter_number;
+	uint8_t launching_frequency;
+	float initial_speed;
 } __attribute__((packed)) ext_shoot_data_t;
 
 
@@ -295,17 +237,12 @@ typedef struct
 {
 	uint32_t rfid_status;
 }__attribute__((packed)) ext_rfid_status_t;
-
+/* ID: 0x020A  Byte:  6 */
 typedef struct{
-	uint8_t dart_launch_opening_status;//当前飞镖发射口的状态
-	uint8_t dart_attack_target;        //飞镖的打击目标，默认为前哨站（1：前哨站，2：基地）
-	uint16_t target_change_time;       //切换打击目标时的比赛剩余时间
-	uint8_t first_dart_speed;          //检测到的第一枚飞镖速度，单位 0.1m/s/LSB
-	uint8_t second_dart_speed;         //检测到的第二枚飞镖速度，单位 0.1m/s/LSB
-	uint8_t third_dart_speed;          //检测到的第三枚飞镖速度，单位 0.1m/s/LSB
-	uint8_t fourth_dart_speed;         //检测到的第四枚飞镖速度，单位 0.1m/s/LSB
-	uint16_t last_dart_launch_time;    //最近一次的发射飞镖的比赛剩余时间，单位秒
-	uint16_t operate_launch_cmd_time;  //最近一次操作手确定发射指令时的比赛剩余时间，单位秒
+	uint8_t dart_launch_opening_status;
+	uint8_t reserved;
+	uint16_t target_change_time;
+	uint16_t latest_launch_cmd_time;
 } __attribute__((packed)) ext_dart_client_cmd_t; //LEN_DART_CLIENT_DIRECTIVE  表3-19
 
 
@@ -349,16 +286,14 @@ typedef struct
 
 typedef struct{
 
-	ext_game_status_t 		Game_Status;				// 0x0001           比赛状态数据
+	game_status_t 		Game_Status;				// 0x0001           比赛状态数据
 	ext_game_result_t 		Game_Result;				// 0x0002         比赛结果数据
-	ext_game_robot_HP_t 	Game_Robot_HP;			// 0x0003         机器人血量数据
-	ext_dart_status_t		Game_Dart_status;				// 0x0004         飞镖发射状态
-	ext_ICRA_buff_debuff_zone_status_t	Game_ICRA_buff;      //                人工智能挑战赛加成与惩罚区状态
+	game_robot_HP_t 	Game_Robot_HP;			// 0x0003         机器人血量数据
 
 	ext_event_data_t			Event_Data;					// 0x0101         场地事件数据
 	ext_supply_projectile_action_t	Supply_Projectile_Action;		// 0x0102 补给站动作标识
 	ext_referee_warning_t		Referee_Warning;		// 0x0104         裁判警告信息
-	ext_dart_remaining_time_t	dart_remaining_time;// 0x0105         飞镖发射口倒计时
+	dart_info_t	dart_info;// 0x0105         飞镖发射口倒计时
 
 	ext_game_robot_state_t	Game_Robot_state;	// 0x0201         比赛机器人状态
 	ext_power_heat_data_t	Power_Heat_Data;		// 0x0202         实时功率热量数据
@@ -387,80 +322,15 @@ uint16_t keyboard_value;
 uint16_t reserved;
 }__attribute__((packed))ext_robot_command_t;
 
-typedef struct
-{
-	uint8_t SOF;
-	uint16_t data_length;
-	uint8_t seq;
-	uint8_t CRC8;
-	uint16_t Cmd_id;
-	uint16_t Data_id;
-	uint16_t Tx_id;
-	uint16_t Rx_id;
-}__attribute__((packed))graphic_TxHeader_Typedef;
+void RefereeInit();
+void RefereeSolve(uint8_t *data);
 
-typedef struct
-{
-	uint8_t graphic_name[3];
-	uint32_t operate_tpye:3;
-	uint32_t graphic_tpye:3;
-	uint32_t layer:4;
-	uint32_t color:4;
-	uint32_t start_angle:9;
-	uint32_t end_angle:9;
-	uint32_t width:10;
-	uint32_t start_x:11;
-	uint32_t start_y:11;
-	uint32_t radius:10;
-	uint32_t end_x:11;
-	uint32_t end_y:11;
-}__attribute__((packed))graphic_data_struct_t;
-
-typedef enum
-{
-	graph_operate_empty = 0,
-	graph_operate_add = 1,
-	graph_operate_change = 2,
-	graph_operate_delete = 3,
-
-	graph_type_line = 0,
-	graph_type_rectangle = 1,
-	graph_type_circle = 2,
-	graph_type_oval = 3,
-	graph_type_arc = 4,
-	graph_type_float = 5,
-	graph_type_int = 6,
-	graph_type_char = 7,
-
-	graph_color_R_or_B = 0,
-	graph_color_yellow = 1,
-	graph_color_green = 2,
-	graph_color_orange = 3,
-	graph_color_purple = 4,
-	graph_color_pink = 5,
-	graph_color_cyan = 6,
-	graph_color_black = 7,
-	graph_color_white = 8,
-
-	graph_LineWidth_default = 3,
-	graph_FrontSize_default = 25,
-
-	LEN_graph_TxHeader = 13,
-	LEN_graph_ID = 6,
-	LEN_data_delete = 2,
-	LEN_data_draw1 = 15,
-	LEN_data_char = 30,
-
-}graph_config;
-
-extern Referee_InfoTypedef Ref_Info;
-extern graphic_data_struct_t const_char, aim_char, chassis_char, droppoint_rectangle;
-extern graphic_TxHeader_Typedef graphic_TxHeader;
-
-extern void UI_Print_char(graphic_data_struct_t *graphic_data, uint8_t *char_to_send, uint8_t ui_color, uint32_t x, uint32_t y);
-extern void UI_Print_rectangle(graphic_data_struct_t *graphic_data, uint8_t ui_color, uint8_t ui_layer, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y);
-extern void UI_Clear_layer(uint8_t ui_layer);
-extern void UI_Refresh_graph(graphic_data_struct_t *graphic_data, uint32_t new_y);
-extern void UI_Refresh_char(graphic_data_struct_t *graphic_data, uint8_t *new_char);
+extern Referee_InfoTypedef refree_info;
+extern uint8_t referee_tx_buf[REFEREE_TXBUFF_SIZE];
+extern uint8_t referee_rx_buf[REFEREE_RXBUFF_SIZE];           //dma接收区
+extern uint8_t referee_pic_rx_buf[REFEREE_PICBUFF_SIZE];
+extern uint8_t UI_Seq;
+extern uint8_t referee_rx_len;    //裁判系统串口idle中断接收数据长度
+extern uint8_t referee_pic_rx_len;
 
 #endif

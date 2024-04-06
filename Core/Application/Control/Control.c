@@ -1,6 +1,6 @@
 #include "Control.h"
 #include "cmsis_os2.h"
-#include "remote.h"
+#include "../Core/Instance/remote/remote.h"
 #include "../Core/Application/Gimbal/Gimbal.h"
 #include "../Core/Application/Chassis/Chassis.h"
 #include "config.h"
@@ -47,7 +47,11 @@ void RemoteCtrl(Gimbal_CmdTypedef *gim, Chassis_CmdTypedef *chs)
     chs->vx = -RC_Ctl.rc.ch2 * REMOTE_X_SEN;
     chs->vy = -RC_Ctl.rc.ch1 * REMOTE_Y_SEN;
     // chassis_cmd.omega_z = RC_Ctl.rc.sw2==1 ? 2*PI : 0;
-    gim->shooter = RC_Ctl.rc.sw2==1 ? SEMI_AUTO : 0;
+    gim->shooter = RC_Ctl.rc.sw2==1 ? FULL_AUTO : 0;
+    if(RC_Ctl.rc.sw2==1 || RC_Ctl.rc.sw2==3)
+    	gim->frictiongear = 1;
+    else
+    	gim->frictiongear = 0;
     gim->v_yaw = -RC_Ctl.rc.ch3 * REMOTE_YAW_SEN*CONTROL_TASK_PERIOD;
     gim->v_pitch = -RC_Ctl.rc.ch4 * REMOTE_PITCH_SEN*CONTROL_TASK_PERIOD;
 
